@@ -1,0 +1,44 @@
+<resources>
+    <string name="app_name">JumpTube</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+
+    <string name="action_settings">Settings</string>
+    <string name="title_activity_settings">Settings</string>
+
+    <string name="settings">Settings</string>
+    <string name="title_activity_youtube_player">YoutubePlayer</string>
+    <string name="error_player">Unable to load.</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="title_activity_ytube_view">MinTubeView</string>
+    <string name="add_ytube">MinTube</string>
+
+    <string name="svg_play">M8,5v14l11,-7z</string>
+    <string name="svg_pause">M6,19h4V5H6v14zm8,-14v14h4V5h-4z</string>
+    <string name="dialog_get_permission">Permit to Draw over other apps</string>
+    <string name="string_get_permission">Allow this app to draw over other apps. This permission allows an app to display on the top of other apps you\'re using.</string>
+    <string name="repeat_type">REPEAT_TYPE</string>
+    <string name="no_of_repeats">NO_OF_REPEATS</string>
+    <string name="player_type">PLAYER_TYPE</string>
+    <string name="init">INITIALIZED</string>
+    <string name="sharedpreference_name">JumpTubeSP</string>
+    <string name="search">search</string>
+    <string name="search_hint">Search YouTube</string>
+    <string name="videoQuality">VIDEO_QUALITY</string>
+    <string name="finishOnEnd">FINISH_ON_END</string>
+
+
+    <!--Hint-->
+    <string name="get_permission">Get Permission</string>
+    <string name="press_again_to_exit">Press again to exit this application</string>
+    <string name="no_internet_connection">Your internet can not available\nPlease check your internet connection</string>
+    <string name="desktop_not_support">Desktop view unavailable</string>
+    <string name="need_permission">You need to grant the permission</string>
+
+    <!--Common-->
+    <string name="sure">Sure</string>
+    <string name="cancel">Cancel</string>
+    <string name="no">No</string>
+</resources>

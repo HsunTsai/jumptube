@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">JumpTube</string>
+    <string name="settings">設定</string>
+    <string name="title_activity_youtube_player">Youtube播放器</string>
+    <string name="error_player">無法載入</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="title_activity_ytube_view">MinTubeView</string>
+    <string name="add_ytube">MinTube</string>
+
+    <string name="svg_play">M8,5v14l11,-7z</string>
+    <string name="svg_pause">M6,19h4V5H6v14zm8,-14v14h4V5h-4z</string>
+    <string name="dialog_get_permission">Permit to Draw over other apps</string>
+    <string name="string_get_permission">請允許JumpTube使用浮動資訊框</string>
+    <string name="repeat_type">重複播放種類</string>
+    <string name="no_of_repeats">重複播放次數</string>
+    <string name="player_type">播放器種類</string>
+    <string name="init">初始化</string>
+    <string name="sharedpreference_name">JumpTubeSP</string>
+    <string name="search">搜尋</string>
+    <string name="search_hint">搜尋YouTube</string>
+    <string name="videoQuality">VIDEO_QUALITY</string>
+    <string name="finishOnEnd">FINISH_ON_END</string>
+
+    <!--提醒句-->
+    <string name="get_permission">前往取得權限</string>
+    <string name="press_again_to_exit">再按一次返回離開應用程式</string>
+    <string name="no_internet_connection">您的網路沒有連線\n請檢查您的網路連線</string>
+    <string name="desktop_not_support">桌面功能尚未支援</string>
+    <string name="need_permission">您需要同意此權限才能開啟視窗</string>
+
+    <!--Common-->
+    <string name="sure">確定</string>
+    <string name="cancel">取消</string>
+    <string name="no">否</string>
+
+    <!--Settings-->
+    <string name="player_width">播放器寬度</string>
+    <string name="player_height">播放器高度</string>
+
+
+</resources>
