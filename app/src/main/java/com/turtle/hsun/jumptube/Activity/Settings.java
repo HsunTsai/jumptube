@@ -22,6 +22,7 @@ import android.widget.TextView;
 
 import com.turtle.hsun.jumptube.Config;
 import com.turtle.hsun.jumptube.R;
+import com.turtle.hsun.jumptube.Utils.LogUtil;
 
 public class Settings extends AppCompatActivity implements View.OnClickListener{
 
@@ -92,12 +93,12 @@ public class Settings extends AppCompatActivity implements View.OnClickListener{
                         editor.putInt(getString(R.string.videoQuality), checked[0]);
                         editor.commit();
                         quality.setText(Config.getPlaybackQuality());
-                        Log.d("New Quality", Config.getPlaybackQuality());
+                        LogUtil.show("New Video Quality => ", Config.getPlaybackQuality());
                     }
                 });
                 String[] items = {"Auto", "1080p", "720p", "480p", "360p", "240p", "144p"};
                 checked[0] = sharedPref.getInt(getString(R.string.videoQuality), 3);
-                Log.d("Old Quality", Config.getPlaybackQuality());
+                LogUtil.show("Now Video Quality => ", Config.getPlaybackQuality());
                 builder.setSingleChoiceItems(items, checked[0], new DialogInterface.OnClickListener(){
                     @Override
                     public void onClick(DialogInterface dialog, int ith) {

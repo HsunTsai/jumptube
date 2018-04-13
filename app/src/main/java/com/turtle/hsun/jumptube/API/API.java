@@ -5,6 +5,7 @@ import android.util.Log;
 
 import com.turtle.hsun.jumptube.Config;
 import com.turtle.hsun.jumptube.Utils.Decode;
+import com.turtle.hsun.jumptube.Utils.LogUtil;
 import com.turtle.hsun.jumptube.Utils.SSL;
 
 import org.apache.http.HttpEntity;
@@ -37,12 +38,12 @@ public class API {
             client = SSL.createMyHttpClient();
             String get_url = "http://suggestqueries.google.com/complete/search?client=youtube&ds=yt&client=firefox&q=" + URLEncoder.encode(keyword, HTTP.UTF_8);
             HttpGet get = new HttpGet(get_url);
-            if (Config.develop_mode) Log.e("get_url", get_url);
+            LogUtil.show("get_url", get_url);
             HttpResponse response = client.execute(get);
             HttpEntity resEntity = response.getEntity();
             if (resEntity != null) youtubeSuggestList = EntityUtils.toString(resEntity);
             youtubeSuggestList = Decode.unicodeToUtf8(youtubeSuggestList);
-            if (Config.develop_mode) Log.e("YoutubeSuggestList", youtubeSuggestList);
+            LogUtil.show("YoutubeSuggestList", youtubeSuggestList);
 
             Integer statusCode = response.getStatusLine().getStatusCode();
             responseModel.setResponseCode(statusCode);
@@ -63,7 +64,7 @@ public class API {
             client = SSL.createMyHttpClient();
             String post_url = "https://your_url";
             HttpPost post = new HttpPost(post_url);
-            if (Config.develop_mode) Log.e("post_url", post_url);
+            LogUtil.show("post_url", post_url);
             List<NameValuePair> params = new ArrayList<NameValuePair>();
             params.add(new BasicNameValuePair("parameter_1", parameter_1));
             params.add(new BasicNameValuePair("parameter_2", parameter_2));
@@ -72,7 +73,7 @@ public class API {
             HttpResponse response = client.execute(post);
             HttpEntity resEntity = response.getEntity();
             if (resEntity != null) SampleResp = EntityUtils.toString(resEntity);
-            if (Config.develop_mode) Log.e("SampleResp", SampleResp);
+            LogUtil.show("SampleResp", SampleResp);
 
             Integer statusCode = response.getStatusLine().getStatusCode();
             responseModel.setResponseCode(statusCode);
@@ -92,7 +93,7 @@ public class API {
             HttpClient client = new DefaultHttpClient();
             client = SSL.createMyHttpClient();
             String delete_url = "https://your_url";
-            if (Config.develop_mode) Log.e("delete_url", delete_url);
+            LogUtil.show("delete_url", delete_url);
             HttpDelete delete = new HttpDelete(delete_url);
             List<NameValuePair> params = new ArrayList<NameValuePair>();
             params.add(new BasicNameValuePair("parameter_1", parameter_1));
@@ -102,7 +103,7 @@ public class API {
             HttpResponse response = client.execute(delete);
             HttpEntity resEntity = response.getEntity();
             if (resEntity != null) SampleResp = EntityUtils.toString(resEntity);
-            if (Config.develop_mode) Log.e("SampleResp", SampleResp);
+            LogUtil.show("SampleResp", SampleResp);
 
             Integer statusCode = response.getStatusLine().getStatusCode();
             responseModel.setResponseCode(statusCode);

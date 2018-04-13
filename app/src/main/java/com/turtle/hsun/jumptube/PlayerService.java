@@ -227,11 +227,11 @@ public class PlayerService extends Service implements View.OnClickListener {
         layout_webView.addView(webPlayer.getPlayer(), new WindowManager.LayoutParams(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.MATCH_PARENT));
         //------------------------------Got Player Id--------------------------------------------------------
         if (Config.linkType == 1) {
-            Log.d("Starting ", "Playlist!!!");
+            LogUtil.show("Service Start => ", "Playlist");
             webPlayer.loadDataWithUrl("https://www.youtube.com/player_api", ConstantStrings.getPlayListHTML(playListID),
                     "text/html", null, null);
         } else {
-            Log.d("Starting ", "Single Video!!!");
+            LogUtil.show("Service Start => ", "Single Video");
             webPlayer.loadDataWithUrl("https://www.youtube.com/player_api", ConstantStrings.getVideoHTML(videoID),
                     "text/html", null, null);
         }
@@ -247,8 +247,6 @@ public class PlayerService extends Service implements View.OnClickListener {
             public void onGlobalLayout() {
                 windows_head.getViewTreeObserver().removeGlobalOnLayoutListener(this);
                 playerHeadSize = windows_head.getMeasuredHeight();
-
-                Log.d("ChatHead Size", String.valueOf(playerHeadSize));
                 param_player.y = playerHeadSize;
                 xOnAppear = -playerHeadSize / playerAsideRatio;
                 windowManager.updateViewLayout(windows_player, param_player);
@@ -592,7 +590,7 @@ public class PlayerService extends Service implements View.OnClickListener {
                     case "playStatus_ended":
                         img_youtube.setVisibility(View.VISIBLE);
                         if (Config.linkType == 1) {
-                            Log.d("Repeat Type ", Config.repeatType + "");
+                            LogUtil.show("Repeat Type => ", String.valueOf(Config.repeatType));
                             if (Config.repeatType == 2) {
                                 webPlayer.loadScript(JavaScript.playPreviousVideo());
                             }

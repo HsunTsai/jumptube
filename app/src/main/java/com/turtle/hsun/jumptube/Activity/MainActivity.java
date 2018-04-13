@@ -300,7 +300,7 @@ public class MainActivity extends AppCompatActivity
                         webView_youtube_list.stopLoading();
                         webView_youtube_list.goBack();
                         if (Service.isRunning(activity, PlayerService.class)) {
-                            Log.d("Service : ", "Already Running!");
+                            LogUtil.show("Service => ", "Already Running!");
                             Bundle bundle = new Bundle();
                             bundle.putString("VIDEO_ID", videoID);
                             bundle.putString("PLAYLIST_ID", playListID);
