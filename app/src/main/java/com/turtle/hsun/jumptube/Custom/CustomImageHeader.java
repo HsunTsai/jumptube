@@ -1,4 +1,4 @@
-package com.turtle.hsun.jumptube;
+package com.turtle.hsun.jumptube.Custom;
 
 import android.content.Intent;
 import android.os.Handler;
@@ -10,9 +10,11 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
+import com.turtle.hsun.jumptube.PlayerService;
+import com.turtle.hsun.jumptube.R;
 import com.turtle.hsun.jumptube.Utils.HandleMessage;
 
-class ImageHeaderAction implements View.OnTouchListener {
+public class CustomImageHeader implements View.OnTouchListener {
 
     private PlayerService playerService;
     private LinearLayout windows_head, windows_close;
@@ -27,7 +29,7 @@ class ImageHeaderAction implements View.OnTouchListener {
     private float initialTouchX, initialTouchY, finalTouchX, finalTouchY;
     private Boolean closeShow = false, isInsideClosePre = false, isEntireWidth = false, isPlayerVisible = true;
 
-    public ImageHeaderAction(PlayerService playerService, WindowManager windowManager,
+    public CustomImageHeader(PlayerService playerService, WindowManager windowManager,
                              LinearLayout windows_head_, RelativeLayout windows_player_,
                              LinearLayout windows_close,
                              Integer scrnWidth, Integer scrnHeight,

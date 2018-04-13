@@ -13,6 +13,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.os.StrictMode;
 import android.support.v4.widget.CursorAdapter;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.SearchView;
@@ -40,6 +41,8 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.VolleyLog;
 import com.android.volley.toolbox.JsonArrayRequest;
+import com.turtle.hsun.jumptube.API.API;
+import com.turtle.hsun.jumptube.API.ResponseModel;
 import com.turtle.hsun.jumptube.Config;
 import com.turtle.hsun.jumptube.Custom.CustomSwipeRefresh;
 import com.turtle.hsun.jumptube.PlayerService;
@@ -53,6 +56,7 @@ import com.turtle.hsun.jumptube.Utils.UITransform;
 import org.json.JSONArray;
 import org.json.JSONException;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -83,11 +87,54 @@ public class MainActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        if (android.os.Build.VERSION.SDK_INT > 9) {
+            StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+            StrictMode.setThreadPolicy(policy);
+        }
         activity = this;
-        initView();
         Handler();
+        initView();
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
+        searchView = (SearchView) menu.findItem(R.id.action_search).getActionView();
+        if (searchView != null) {
+            searchView.setSearchableInfo(
+                    searchManager.getSearchableInfo(getComponentName()));
+            searchView.setOnQueryTextListener(this);
+        }
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_settings:
+                startActivity(new Intent(this, Settings.class));
+                return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public boolean onQueryTextSubmit(String query) {
+        webView_youtube_list.loadUrl("http://m.youtube.com/results?q=" + query);
+        searchView.clearFocus();
+        return true;
+    }
+
+    @Override
+    public boolean onQueryTextChange(String keyword) {
+        if (keyword.length() > 0) {
+            GetYoutubeSuggestion getYoutubeSuggestion = new GetYoutubeSuggestion();
+            getYoutubeSuggestion.setData(keyword);
+            getYoutubeSuggestion.run();
+        }
+        return true;
+    }
 
     private void initView() {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -194,110 +241,23 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
+    private class GetYoutubeSuggestion extends Thread {
+        public String keyword = "";
 
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
-        searchView = (SearchView) menu.findItem(R.id.action_search).getActionView();
-        if (searchView != null) {
-            searchView.setSearchableInfo(
-                    searchManager.getSearchableInfo(getComponentName()));
-            searchView.setOnQueryTextListener(this);
+        private void setData(String keyword) {
+            this.keyword = keyword;
         }
-        return true;
-    }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.action_settings:
-                startActivity(new Intent(this, Settings.class));
-                return true;
+        @Override
+        public void run() {
+            ResponseModel responseModel = API.getYoutubeSuggest(this.keyword);
+            if (responseModel.getResponseCode() == 200) {
+                HandleMessage.set(handler, "showSuggestionList", responseModel.getMessgae());
+            } else if (responseModel.getResponseCode() == 9999) {
+                //沒有網路
+                HandleMessage.set(handler, "check_internet");
+            }
         }
-        return super.onOptionsItemSelected(item);
-    }
-
-    @Override
-    public boolean onQueryTextSubmit(String query) {
-        webView_youtube_list.loadUrl("http://m.youtube.com/results?q=" + query);
-        searchView.clearFocus();
-        return true;
-    }
-
-    @Override
-    public boolean onQueryTextChange(String newText) {
-        Log.e("123","變更為http get");
-        if (newText.length() > 0) {
-            newText = newText.replace(" ", "+");
-            String url = "http://suggestqueries.google.com/complete/search?client=youtube&ds=yt&client=firefox&q="
-                    + newText;
-            JsonArrayRequest req = new JsonArrayRequest(url,
-                    new Response.Listener<JSONArray>() {
-                        @Override
-                        public void onResponse(JSONArray response) {
-                            try {
-                                JSONArray jsonArraySuggestion = (JSONArray) response.get(1);
-                                String[] suggestions = new String[10];
-                                for (int i = 0; i < 10; i++) {
-                                    if (!jsonArraySuggestion.isNull(i)) {
-                                        suggestions[i] = jsonArraySuggestion.get(i).toString();
-                                    }
-                                }
-                                Log.d("Suggestions", Arrays.toString(suggestions));
-                                //Cursor Adaptor
-                                String[] columnNames = {"_id", "suggestion"};
-                                MatrixCursor cursor = new MatrixCursor(columnNames);
-                                String[] temp = new String[2];
-                                int id = 0;
-                                for (String item : suggestions) {
-                                    if (item != null) {
-                                        temp[0] = Integer.toString(id++);
-                                        temp[1] = item;
-                                        cursor.addRow(temp);
-                                    }
-                                }
-                                CursorAdapter cursorAdapter = new CursorAdapter(getApplicationContext(), cursor, false) {
-                                    @Override
-                                    public View newView(Context context, Cursor cursor, ViewGroup parent) {
-                                        return LayoutInflater.from(context).inflate(R.layout.component_search_suggestion_list_item, parent, false);
-                                    }
-
-                                    @Override
-                                    public void bindView(View view, Context context, Cursor cursor) {
-                                        final Button suggest = (Button) view.findViewById(R.id.bt_suggest);
-                                        String body = cursor.getString(cursor.getColumnIndexOrThrow("suggestion"));
-                                        suggest.setText(body);
-                                        suggest.setOnClickListener(new View.OnClickListener() {
-                                            @Override
-                                            public void onClick(View v) {
-                                                searchView.setQuery(suggest.getText(), true);
-                                                searchView.clearFocus();
-                                            }
-                                        });
-                                    }
-                                };
-                                searchView.setSuggestionsAdapter(cursorAdapter);
-                            } catch (JSONException e) {
-                                e.printStackTrace();
-                            }
-
-                        }
-                    }, new Response.ErrorListener() {
-                @Override
-                public void onErrorResponse(VolleyError error) {
-                    VolleyLog.d("Tag", "Error: " + error.getMessage());
-                    Toast.makeText(getApplicationContext(),
-                            error.getMessage(), Toast.LENGTH_SHORT).show();
-                }
-            });
-
-            // Adding request to request queue
-//            AppController.getInstance().addToRequestQueue(req);
-
-        }
-        return true;
     }
 
     @Override
@@ -326,6 +286,9 @@ public class MainActivity extends AppCompatActivity
         handler = new Handler() {
             public void handleMessage(Message msg) {
                 switch (msg.getData().getString("title", "")) {
+                    case "check_internet":
+                        Toast.makeText(MainActivity.this, getString(R.string.check_internet), Toast.LENGTH_SHORT).show();
+                        break;
                     case "refresh_start":
                         swipeRefreshLayout.setRefreshing(true);
                         break;
@@ -357,7 +320,54 @@ public class MainActivity extends AppCompatActivity
                                 startService(i);
                             }
                         }
+                        break;
+                    case "showSuggestionList":
+                        final String suggestList = msg.getData().getString("message", null);
+                        try {
+                            JSONArray suggestList_ = new JSONArray(suggestList);
+                            JSONArray suggestListArray = (JSONArray) suggestList_.get(1);
+                            ArrayList<String> suggestions = new ArrayList<>();
+                            for (int i = 0; i < 10; i++) {
+                                String suggestion = suggestListArray.get(i).toString();
+                                if (null != suggestion) {
+                                    suggestions.add(suggestion);
+                                }
+                            }
+                            String[] columnNames = {"_id", "suggestion"};
+                            MatrixCursor cursor = new MatrixCursor(columnNames);
+                            String[] temp = new String[2];
+                            int id = 0;
+                            for (String item : suggestions) {
+                                if (item != null) {
+                                    temp[0] = Integer.toString(id++);
+                                    temp[1] = item;
+                                    cursor.addRow(temp);
+                                }
+                            }
+                            CursorAdapter cursorAdapter = new CursorAdapter(getApplicationContext(), cursor, false) {
+                                @Override
+                                public View newView(Context context, Cursor cursor, ViewGroup parent) {
+                                    return LayoutInflater.from(context).inflate(R.layout.component_search_suggestion_list_item, parent, false);
+                                }
 
+                                @Override
+                                public void bindView(View view, Context context, Cursor cursor) {
+                                    final Button suggest = (Button) view.findViewById(R.id.bt_suggest);
+                                    String body = cursor.getString(cursor.getColumnIndexOrThrow("suggestion"));
+                                    suggest.setText(body);
+                                    suggest.setOnClickListener(new View.OnClickListener() {
+                                        @Override
+                                        public void onClick(View v) {
+                                            searchView.setQuery(suggest.getText(), true);
+                                            searchView.clearFocus();
+                                        }
+                                    });
+                                }
+                            };
+                            searchView.setSuggestionsAdapter(cursorAdapter);
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
                         break;
                 }
             }

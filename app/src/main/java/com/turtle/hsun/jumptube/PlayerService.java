@@ -31,7 +31,8 @@ import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 
 import com.turtle.hsun.jumptube.Activity.FullscreenWebPlayer;
-import com.turtle.hsun.jumptube.Components.WebPlayer;
+import com.turtle.hsun.jumptube.Custom.CustomImageHeader;
+import com.turtle.hsun.jumptube.Custom.WebPlayer;
 import com.turtle.hsun.jumptube.Custom.CustomNotificationManager;
 import com.turtle.hsun.jumptube.Custom.CustomSeekbar;
 import com.turtle.hsun.jumptube.Utils.HandleMessage;
@@ -66,7 +67,7 @@ public class PlayerService extends Service implements View.OnClickListener {
             windowsCloseBackParams, componentPlayerParams,
             param_player, param_service, param_close, param_close_back;
     private CustomNotificationManager customNotificationManager;
-    private ImageHeaderAction imageHeaderAction;
+    private CustomImageHeader customImageHeader;
     private Timer updateCurrentTimeTimer;
 
     private int scrnWidth, scrnHeight, defaultPlayerWidth, playerHeadSize, xAtHiding, yAtHiding,
@@ -280,8 +281,8 @@ public class PlayerService extends Service implements View.OnClickListener {
         windowManager.addView(windows_close, param_close);
         img_close = (ImageView) windows_close.findViewById(R.id.img_close);
 
-        imageHeaderAction = new ImageHeaderAction(this, windowManager, windows_head, windows_player, windows_close, scrnWidth, scrnHeight, playerAsideRatio);
-        imageHeaderAction.setOnActionListener(new ImageHeaderAction.ImageHeaderActionListener() {
+        customImageHeader = new CustomImageHeader(this, windowManager, windows_head, windows_player, windows_close, scrnWidth, scrnHeight, playerAsideRatio);
+        customImageHeader.setOnActionListener(new CustomImageHeader.ImageHeaderActionListener() {
             @Override
             public void onPlayerVisible(Boolean visible) {
                 if (visible) {
@@ -291,7 +292,7 @@ public class PlayerService extends Service implements View.OnClickListener {
                 }
             }
         });
-        img_head_icon.setOnTouchListener(imageHeaderAction);
+        img_head_icon.setOnTouchListener(customImageHeader);
 
     }
 
@@ -447,13 +448,13 @@ public class PlayerService extends Service implements View.OnClickListener {
                     param_player.width = defaultPlayerWidth;
                     windowManager.updateViewLayout(windows_player, param_player);
                     img_entire_width.setImageDrawable(getResources().getDrawable(R.drawable.ic_entire_width));
-                    imageHeaderAction.setEntireWidth(false);
+                    customImageHeader.setEntireWidth(false);
                 } else {
                     //Enter Entire Width
                     param_player.width = WindowManager.LayoutParams.MATCH_PARENT;
                     windowManager.updateViewLayout(windows_player, param_player);
                     img_entire_width.setImageDrawable(getResources().getDrawable(R.drawable.ic_entire_width_exit));
-                    imageHeaderAction.setEntireWidth(true);
+                    customImageHeader.setEntireWidth(true);
                 }
                 isEntireWidth = !isEntireWidth;
                 break;

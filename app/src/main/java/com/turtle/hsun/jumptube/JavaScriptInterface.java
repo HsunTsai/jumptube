@@ -3,7 +3,7 @@ package com.turtle.hsun.jumptube;
 import android.os.Handler;
 import android.webkit.JavascriptInterface;
 
-import com.turtle.hsun.jumptube.Components.WebPlayer;
+import com.turtle.hsun.jumptube.Custom.WebPlayer;
 import com.turtle.hsun.jumptube.Utils.HandleMessage;
 import com.turtle.hsun.jumptube.Utils.LogUtil;
 

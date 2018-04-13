@@ -36,6 +36,7 @@
     <string name="no_internet_connection">Your internet can not available\nPlease check your internet connection</string>
     <string name="desktop_not_support">Desktop view unavailable</string>
     <string name="need_permission">You need to grant the permission</string>
+    <string name="check_internet">Please check your network</string>
 
     <!--Common-->
     <string name="sure">Sure</string>

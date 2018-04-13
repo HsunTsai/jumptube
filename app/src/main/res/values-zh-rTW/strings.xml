@@ -29,6 +29,7 @@
     <string name="no_internet_connection">您的網路沒有連線\n請檢查您的網路連線</string>
     <string name="desktop_not_support">桌面功能尚未支援</string>
     <string name="need_permission">您需要同意此權限才能開啟視窗</string>
+    <string name="check_internet">請檢查您的網路</string>
 
     <!--Common-->
     <string name="sure">確定</string>
