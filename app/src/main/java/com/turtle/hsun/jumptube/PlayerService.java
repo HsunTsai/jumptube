@@ -16,7 +16,6 @@ import android.os.Message;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
-import android.util.Log;
 import android.view.Display;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -70,8 +69,9 @@ public class PlayerService extends Service implements View.OnClickListener {
     private CustomImageHeader customImageHeader;
     private Timer updateCurrentTimeTimer;
 
-    private int scrnWidth, scrnHeight, defaultPlayerWidth, playerHeadSize, xAtHiding, yAtHiding,
+    private int scrnWidth, scrnHeight, defaultPlayerWidth, defaultPlayerHeight, playerHeadSize, xAtHiding, yAtHiding,
             xOnAppear, yOnAppear = 0, playerAsideRatio = 7;
+    public static int OVER_LAPPING_HEIGHT = 40;
 
     @Override
     public void onCreate() {
@@ -169,8 +169,8 @@ public class PlayerService extends Service implements View.OnClickListener {
                 WindowManager.LayoutParams.WRAP_CONTENT);
 
         //Player View Params
-        param_player = ServicePlayerLayoutParams.init(WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowManager.LayoutParams.WRAP_CONTENT);
+        Double playerHeight = new Double(scrnWidth / 1.49);
+        param_player = ServicePlayerLayoutParams.init(scrnWidth, playerHeight.intValue());
 
         //Close Backgroung Params
         param_close_back = ServicePlayerLayoutParams.init(WindowManager.LayoutParams.MATCH_PARENT,
@@ -237,7 +237,7 @@ public class PlayerService extends Service implements View.OnClickListener {
         }
         param_player.gravity = Gravity.TOP | Gravity.LEFT;
         param_player.x = 0;
-        param_player.y = playerHeadSize;
+        param_player.y = playerHeadSize - OVER_LAPPING_HEIGHT;
         windowManager.addView(windows_player, param_player);
 
         //大頭貼 畫面參數監聽註冊
@@ -247,7 +247,7 @@ public class PlayerService extends Service implements View.OnClickListener {
             public void onGlobalLayout() {
                 windows_head.getViewTreeObserver().removeGlobalOnLayoutListener(this);
                 playerHeadSize = windows_head.getMeasuredHeight();
-                param_player.y = playerHeadSize;
+                param_player.y = playerHeadSize - OVER_LAPPING_HEIGHT;
                 xOnAppear = -playerHeadSize / playerAsideRatio;
                 windowManager.updateViewLayout(windows_player, param_player);
             }
@@ -260,8 +260,9 @@ public class PlayerService extends Service implements View.OnClickListener {
             public void onGlobalLayout() {
                 windows_player.getViewTreeObserver().removeGlobalOnLayoutListener(this);
                 defaultPlayerWidth = windows_player.getMeasuredWidth();
-                param_player.width = windows_player.getMeasuredWidth();
-//                param_player.height = playerWidth;
+                defaultPlayerHeight = windows_player.getMeasuredHeight();
+                param_player.width = defaultPlayerWidth;
+                param_player.height = defaultPlayerHeight;
             }
         });
 
@@ -282,12 +283,13 @@ public class PlayerService extends Service implements View.OnClickListener {
         customImageHeader = new CustomImageHeader(this, windowManager, windows_head, windows_player, windows_close, scrnWidth, scrnHeight, playerAsideRatio);
         customImageHeader.setOnActionListener(new CustomImageHeader.ImageHeaderActionListener() {
             @Override
-            public void onPlayerVisible(Boolean visible) {
-                if (visible) {
-                    showPlayer();
-                } else {
-                    hidePlayer(true);
-                }
+            public void onPlayerHide() {
+                hidePlayer(true);
+            }
+
+            @Override
+            public void onPlayerShow(Boolean needShowUp) {
+                showPlayer(needShowUp);
             }
         });
         img_head_icon.setOnTouchListener(customImageHeader);
@@ -312,7 +314,7 @@ public class PlayerService extends Service implements View.OnClickListener {
 
     public class TouchDetectListener implements View.OnTouchListener {
         private double distance_ori = 0;
-        private Boolean isWork = false;
+        private Boolean isWork = false, isScaleAction = false;
         private Integer CLICK_ACTION_THRESHOLD = 200;
         private Float initialTouchX = 0f, initialTouchY = 0f;
 
@@ -326,6 +328,7 @@ public class PlayerService extends Service implements View.OnClickListener {
                     initialTouchY = event.getY();
                     break;
                 case MotionEvent.ACTION_UP:
+                    isScaleAction = false;
                     distance_ori = 0;
                     if (isClicked(initialTouchX, event.getX(), initialTouchY, event.getY())) {
                         pausePlay();
@@ -344,24 +347,11 @@ public class PlayerService extends Service implements View.OnClickListener {
                                 finger1_y = event.getY(0),
                                 finger2_x = event.getX(1),
                                 finger2_y = event.getY(1);
+
                         final double distanceGap = Math.sqrt(Math.pow(finger1_x - finger2_x, 2) + Math.pow(finger1_y - finger2_y, 2)) - distance_ori;
-                        if (!isWork) {
-                            isWork = true;
-                            new Timer().schedule(new TimerTask() {
-                                @Override
-                                public void run() {
-                                    isWork = false;
-                                    double new_player_width = param_player.width + distanceGap / 100;
-                                    if (defaultPlayerWidth / 2 < new_player_width && new_player_width < scrnWidth) {
-                                        param_player.width += distanceGap / 100;
-                                        HandleMessage.set(handler, "updatePlayerWindow");
-                                    }
-                                    if (new_player_width > scrnWidth) {
-                                        //超過範圍校正
-                                        HandleMessage.set(handler, "imageEntireClick");
-                                    }
-                                }
-                            }, 100);
+                        if (Math.abs(distanceGap) > 50 && !isScaleAction) {
+                            isScaleAction = true;
+                            scaleWindow(distanceGap > 0);
                         }
                     }
                     break;
@@ -376,6 +366,25 @@ public class PlayerService extends Service implements View.OnClickListener {
                 return false;
             }
             return true;
+        }
+    }
+
+    private void scaleWindow(Boolean isScaleUp) {
+        int partScrnWidth = scrnWidth / 6, newWindowsScaleType;
+        float paramPlayerProportion = (float) defaultPlayerHeight / (float) defaultPlayerWidth;
+        if (isScaleUp) {
+            newWindowsScaleType = Config.windowsScaleType + 1;
+        } else {
+            newWindowsScaleType = Config.windowsScaleType - 1;
+        }
+        if (newWindowsScaleType >= 3 && newWindowsScaleType <= 6) {
+            //only accept type from 3 to 5
+            param_player.width = partScrnWidth * newWindowsScaleType;
+            param_player.height = Math.round(param_player.width * paramPlayerProportion);
+            //Set player height & width for component
+            customImageHeader.setPlayerSize(param_player.width, param_player.height);
+            HandleMessage.set(handler, "updatePlayerWindow");
+            Config.windowsScaleType = newWindowsScaleType;
         }
     }
 
@@ -419,9 +428,6 @@ public class PlayerService extends Service implements View.OnClickListener {
             case R.id.bt_pause_play:
                 pausePlay();
                 break;
-            //webPlayer.loadScript(JavaScript.seekTo(20));
-            //webPlayer.loadScript(JavaScript.getCurrentTime());
-            //webPlayer.loadScript(JavaScript.getDuration());
             //Handle Full Screen
             case R.id.img_fullscreen:
                 webPlayer.loadScript(JavaScript.pauseVideo());
@@ -490,7 +496,7 @@ public class PlayerService extends Service implements View.OnClickListener {
         }
     }
 
-    private void showPlayer() {
+    private void showPlayer(Boolean needShowUp) {
         layout_player.setVisibility(View.VISIBLE);
         //Store current to again hidden icon will come here
         if (param_service.x > 0) {
@@ -501,9 +507,14 @@ public class PlayerService extends Service implements View.OnClickListener {
         yOnAppear = param_service.y;
         //Update the icon and player to player's hidden position
         param_service.x = xAtHiding;
-        param_service.y = yAtHiding;
         param_player.x = xAtHiding;
-        param_player.y = yAtHiding + playerHeadSize;
+        if (needShowUp) {
+            param_service.y = yAtHiding - 80;
+            param_player.y = yAtHiding + playerHeadSize - 80 - OVER_LAPPING_HEIGHT;
+        } else {
+            param_service.y = yAtHiding;
+            param_player.y = yAtHiding + playerHeadSize - OVER_LAPPING_HEIGHT;
+        }
         windowManager.updateViewLayout(windows_player, param_player);
         windowManager.updateViewLayout(windows_head, param_service);
     }
@@ -515,8 +526,8 @@ public class PlayerService extends Service implements View.OnClickListener {
         WindowManager.LayoutParams playerParams = ServicePlayerLayoutParams.init(0, 0);
         playerParams.x = scrnWidth;
         playerParams.y = scrnHeight;
-        windowManager.updateViewLayout(windows_player, playerParams);
         layout_player.setVisibility(View.GONE);
+        windowManager.updateViewLayout(windows_player, playerParams);
         if (updateHead) {
             param_service.x = xOnAppear;
             param_service.y = yOnAppear;
@@ -666,7 +677,7 @@ public class PlayerService extends Service implements View.OnClickListener {
                     //設定目前播放進度
                     case "setCurrentTime":
                         Integer currentTime = Integer.parseInt(msg.getData().getString("message", "0"));
-                        seekBar_player.setProgress(currentTime, true);
+                        seekBar_player.setProgress(currentTime);
                         break;
                     case "imageEntireClick":
                         img_entire_width.performClick();

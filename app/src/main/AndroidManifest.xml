@@ -2,9 +2,12 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.turtle.hsun.jumptube">
 
-    <uses-permission android:name="android.permission.INTERNET" android:required="true" />
+    <uses-permission
+        android:name="android.permission.INTERNET"
+        android:required="true" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
 
     <application
@@ -45,17 +48,9 @@
             android:screenOrientation="landscape"
             android:theme="@android:style/Theme.NoTitleBar.Fullscreen" />
 
-        <activity
-            android:name=".Activity.RateOrStar"
-            android:theme="@style/Theme.AppCompat.Light.Dialog.Alert" />
-
         <service
             android:name=".PlayerService"
             android:exported="true" />
-
-        <!--<meta-data-->
-            <!--android:name="io.fabric.ApiKey"-->
-            <!--android:value="Fabric_API_KEY" />-->
 
     </application>
 

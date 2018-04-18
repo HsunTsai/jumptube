@@ -1,7 +1,10 @@
 package com.turtle.hsun.jumptube.Custom;
 
+import android.app.Service;
 import android.content.Intent;
 import android.os.Handler;
+import android.os.Vibrator;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewTreeObserver;
@@ -14,20 +17,26 @@ import com.turtle.hsun.jumptube.PlayerService;
 import com.turtle.hsun.jumptube.R;
 import com.turtle.hsun.jumptube.Utils.HandleMessage;
 
+import static com.turtle.hsun.jumptube.PlayerService.OVER_LAPPING_HEIGHT;
+
 public class CustomImageHeader implements View.OnTouchListener {
 
-    private PlayerService playerService;
+    //Components
     private LinearLayout windows_head, windows_close;
     private RelativeLayout windows_player, layout_close;
     private ImageHeaderActionListener listener;
     private WindowManager windowManager;
     private ImageView img_close;
 
+    //Parameters
+    private PlayerService playerService;
+    private Vibrator vibrator;
     private int initialX, initialY, closeMinX, closeMinY, closeMaxX, scrnWidth, scrnHeight,
             playerWidth, playerAsideRatio, playerHeadSize, playerHeight, closeImageLayoutSize,
             playerHeadCenterX, playerHeadCenterY;
     private float initialTouchX, initialTouchY, finalTouchX, finalTouchY;
-    private Boolean closeShow = false, isInsideClosePre = false, isEntireWidth = false, isPlayerVisible = true;
+    private Boolean closeShow = false, isInsideClosePre = false, isEntireWidth = false,
+            isPlayerVisible = true, isNeedShowUp = false;
 
     public CustomImageHeader(PlayerService playerService, WindowManager windowManager,
                              LinearLayout windows_head_, RelativeLayout windows_player_,
@@ -43,6 +52,7 @@ public class CustomImageHeader implements View.OnTouchListener {
         this.scrnHeight = scrnHeight;
         this.playerAsideRatio = playerAsideRatio;
         this.layout_close = (RelativeLayout) windows_close.findViewById(R.id.layout_close);
+        this.vibrator = (Vibrator) playerService.getApplication().getSystemService(Service.VIBRATOR_SERVICE);
 
         ViewTreeObserver vto = windows_head.getViewTreeObserver();
         vto.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
@@ -76,7 +86,9 @@ public class CustomImageHeader implements View.OnTouchListener {
     }
 
     public interface ImageHeaderActionListener {
-        public void onPlayerVisible(Boolean visible);
+        public void onPlayerShow(Boolean needShowUp);
+
+        public void onPlayerHide();
     }
 
     public void setOnActionListener(ImageHeaderActionListener listener) {
@@ -89,6 +101,11 @@ public class CustomImageHeader implements View.OnTouchListener {
 
     public void setPlayerVisible(Boolean isPlayerVisible) {
         this.isPlayerVisible = isPlayerVisible;
+    }
+
+    public void setPlayerSize(Integer playerWidth, Integer playerHeight) {
+        this.playerWidth = playerWidth;
+        this.playerHeight = playerHeight;
     }
 
     @Override
@@ -122,7 +139,13 @@ public class CustomImageHeader implements View.OnTouchListener {
                 }
                 if (isClicked(initialTouchX, finalTouchX, initialTouchY, finalTouchY)) {
                     //change player isVisible
-                    changePlayerVisible();
+                    if (this.isPlayerVisible) {
+                        this.listener.onPlayerHide();
+                        this.isNeedShowUp = false;
+                    } else {
+                        this.listener.onPlayerShow(this.isNeedShowUp);
+                    }
+                    this.isPlayerVisible = !this.isPlayerVisible;
                 } else {
                     //stop if inside the close Button
                     if (isInsideClosePre) {
@@ -146,29 +169,38 @@ public class CustomImageHeader implements View.OnTouchListener {
                 newY = initialY + (int) (event.getRawY() - initialTouchY);
                 if (isPlayerVisible) {
                     if (newX < 0) {
+                        //貼齊左邊
                         param_player.x = 0;
                         params.x = 0;
                     } else if (playerWidth + newX > scrnWidth) {
+                        //限制不超出右邊
                         param_player.x = scrnWidth - playerWidth;
                         params.x = scrnWidth - playerWidth;
                     } else {
+                        //自由移動
                         param_player.x = newX;
                         params.x = newX;
                     }
 
                     if (newY < 0) {
-                        param_player.y = playerHeadSize;
+                        //貼齊最上
+                        param_player.y = playerHeadSize - OVER_LAPPING_HEIGHT;
                         params.y = 0;
-                    } else if (playerHeight + newY + playerHeadSize > scrnHeight) {
-                        //change player isVisible (Hide Player)
-                        changePlayerVisible();
+                    } else if (playerHeight + newY + playerHeadSize - 80 > scrnHeight) {
                         params.y = newY;
+                        if (this.isPlayerVisible) {
+                            this.isPlayerVisible = false;
+                            this.isNeedShowUp = true;
+                            this.listener.onPlayerHide();
+                        }
                     } else {
-                        param_player.y = newY + playerHeadSize;
+                        //自由移動
+                        param_player.y = newY + playerHeadSize - OVER_LAPPING_HEIGHT;
                         params.y = newY;
                     }
                     windowManager.updateViewLayout(windows_head, params);
-                    windowManager.updateViewLayout(windows_player, param_player);
+                    if (this.isPlayerVisible)
+                        windowManager.updateViewLayout(windows_player, param_player);
                 } else {
                     if (newY + playerHeadSize > scrnHeight) {
                         params.y = scrnHeight - playerHeadSize;
@@ -186,6 +218,7 @@ public class CustomImageHeader implements View.OnTouchListener {
                         params.width = closeImageLayoutSize;
                         params.height = closeImageLayoutSize;
                         if (isInsideClose != isInsideClosePre) {
+                            vibrator.vibrate(50);
                             img_close.animate().scaleX(1.4f).scaleY(1.4f).setDuration(100).start();
                             isInsideClosePre = isInsideClose;
                         }
@@ -211,11 +244,6 @@ public class CustomImageHeader implements View.OnTouchListener {
             return false;
         }
         return true;
-    }
-
-    private void changePlayerVisible() {
-        isPlayerVisible = !isPlayerVisible;
-        listener.onPlayerVisible(isPlayerVisible);
     }
 
 

@@ -25,6 +25,9 @@ public class Config {
     //Playback Quality
     public static int playbackQuality = 3;
 
+    //Float window (Only for 1 ~ 5)
+    public static int windowsScaleType = 6;
+
     public static String getPlaybackQuality() {
         //0 = auto, 1 = hd1080, 2 = hd720, 3 = large(480p), 4 = medium(360p), 5 = small(240p), 6 = tiny(144p),
         String[] strPlaybackQuality = {"auto", "hd1080", "hd720", "large", "medium", "small", "tiny"};

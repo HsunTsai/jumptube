@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/layout_settings"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
@@ -16,8 +15,9 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="General Settings"
-            android:textColor="#4285f4"
+            android:text="@string/general_settings"
+            android:textColor="@color/holo_blue_dark"
+            android:textSize="16dp"
             android:textStyle="bold" />
 
         <LinearLayout
@@ -26,209 +26,50 @@
             android:orientation="vertical">
 
             <LinearLayout
+                android:id="@+id/layout_video_quality"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="30dp"
-                    android:layout_gravity="center"
-                    android:layout_marginBottom="2dp"
-                    android:layout_marginTop="5dp"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:weightSum="4">
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="match_parent"
-                        android:layout_weight="2"
-                        android:gravity="center|left"
-                        android:text="No. Of Repeats"
-                        android:textSize="15dp" />
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="match_parent"
-                        android:layout_weight="2"
-                        android:gravity="center"
-                        android:orientation="horizontal"
-                        android:weightSum="3">
-
-                        <Button
-                            android:id="@+id/decrease_repeat_count"
-                            style="?borderlessButtonStyle"
-                            android:layout_width="0dp"
-                            android:layout_height="match_parent"
-                            android:layout_weight="1"
-                            android:background="#ffd5d5"
-                            android:text="-"
-                            android:textAppearance="@style/TextAppearance.AppCompat.Button"
-                            android:textColor="#bbb"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="match_parent"
-                            android:layout_weight="1"
-                            android:gravity="center"
-                            android:text="0"
-                            android:textSize="15dp" />
-
-                        <Button
-                            android:id="@+id/increase_repeat_count"
-                            style="?borderlessButtonStyle"
-                            android:layout_width="0dp"
-                            android:layout_height="match_parent"
-                            android:layout_weight="1"
-                            android:background="#ffd5d5"
-                            android:text="+"
-                            android:textAppearance="@style/TextAppearance.AppCompat.Button"
-                            android:textColor="#bbb"
-                            android:textStyle="bold" />
-                    </LinearLayout>
-                </LinearLayout>
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/video_quality"
-                android:layout_width="match_parent"
-                android:layout_height="30dp"
-                android:layout_marginBottom="2dp"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="10dp"
+                android:layout_marginRight="10dp"
                 android:layout_marginTop="5dp"
                 android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:weightSum="5">
+                android:orientation="horizontal">
 
                 <TextView
-                    android:layout_width="0dp"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="3"
-                    android:text="Video Quality"
-                    android:textColor="#353535"
-                    android:textSize="15dp" />
+                    android:layout_weight="1"
+                    android:text="@string/video_quality"
+                    android:textColor="@android:color/black"
+                    android:textSize="14dp" />
 
                 <TextView
-                    android:id="@+id/text_view_quality"
-                    android:layout_width="0dp"
+                    android:id="@+id/txt_video_quality"
+                    android:layout_width="wrap_content"
                     android:layout_height="match_parent"
-                    android:layout_weight="2"
                     android:gravity="center"
                     android:text="1080p"
-                    android:textSize="15dp" />
+                    android:textSize="14dp" />
+
             </LinearLayout>
+
         </LinearLayout>
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
-            android:text="Player Settings"
-            android:textColor="#4285f4"
+            android:text="@string/learn_more"
+            android:textColor="@color/holo_blue_dark"
+            android:textSize="16dp"
             android:textStyle="bold" />
 
         <LinearLayout
-            android:id="@+id/player_type"
-            android:layout_width="match_parent"
-            android:layout_height="30dp"
-            android:layout_marginBottom="2dp"
-            android:layout_marginTop="5dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:weightSum="5">
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="3"
-                android:text="Player Type"
-                android:textSize="15dp" />
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="2"
-                android:gravity="center"
-                android:text="Web Player"
-                android:textSize="15dp" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="30dp"
-            android:layout_marginBottom="2dp"
-            android:layout_marginTop="5dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:weightSum="5">
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="4"
-                android:gravity="center|left"
-                android:text="FullScreen on Rotate"
-                android:textSize="15dp" />
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="center">
-
-                <CheckBox
-                    android:id="@+id/fullscreen_on_rotate"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center" />
-            </LinearLayout>
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="30dp"
-            android:layout_marginBottom="2dp"
-            android:layout_marginTop="5dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:weightSum="5">
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_gravity="center|left"
-                android:layout_weight="4"
-                android:text="Stop if Nothing is playing"
-                android:textColor="#353535"
-                android:textSize="15dp" />
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="center">
-
-                <CheckBox
-                    android:id="@+id/stop_not_playing"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center" />
-            </LinearLayout>
-        </LinearLayout>
-
-        <TextView
+            android:id="@+id/layout_about"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:text="Learn More"
-            android:textColor="#4285f4"
-            android:textStyle="bold" />
-
-        <LinearLayout
-            android:id="@+id/about"
-            android:layout_width="match_parent"
-            android:layout_height="30dp"
-            android:layout_marginBottom="2dp"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
             android:layout_marginTop="5dp"
             android:gravity="center_vertical"
             android:orientation="horizontal">
@@ -238,9 +79,9 @@
                 android:layout_height="match_parent"
                 android:layout_weight="3"
                 android:gravity="center|left"
-                android:text="About"
-                android:textColor="#353535"
-                android:textSize="15dp" />
+                android:text="@string/about"
+                android:textColor="@android:color/black"
+                android:textSize="14dp" />
         </LinearLayout>
     </LinearLayout>
 

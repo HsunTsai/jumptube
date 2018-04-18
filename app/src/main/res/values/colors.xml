@@ -5,8 +5,8 @@
     <color name="colorAccent">#00e676</color>
 
     <color name="holo_green_dark">#669900</color>
-    <color name="holo_orange_light">#0099cc</color>
-    <color name="holo_blue_dark">#ffbb33</color>
+    <color name="holo_blue_dark">#0099cc</color>
+    <color name="holo_orange_light">#ffbb33</color>
     <color name="holo_red_light">#ff9a9a</color>
     <color name="alpha_black">#33000000</color>
 </resources>

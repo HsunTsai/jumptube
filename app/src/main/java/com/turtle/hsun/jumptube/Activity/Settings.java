@@ -24,14 +24,14 @@ import com.turtle.hsun.jumptube.Config;
 import com.turtle.hsun.jumptube.R;
 import com.turtle.hsun.jumptube.Utils.LogUtil;
 
-public class Settings extends AppCompatActivity implements View.OnClickListener{
+public class Settings extends AppCompatActivity implements View.OnClickListener {
 
-    LinearLayout videoQuality, playerType, about;
-    Button increaseCount, decreaseCount;
-    CheckBox fullscreenOnRotate, stopNotPlaying;
-    LinearLayout layout_settings;
-    TextView quality;
-    SharedPreferences sharedPref;
+    //Components
+    private LinearLayout layout_video_quality, layout_about;
+    private TextView txt_video_quality;
+
+    //Parameters
+    private SharedPreferences sharedPreferences;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,34 +41,17 @@ public class Settings extends AppCompatActivity implements View.OnClickListener{
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        initViews();
+        sharedPreferences = getApplicationContext().getSharedPreferences(getString(R.string.sharedpreference_name), Context.MODE_PRIVATE);
 
-        sharedPref = getApplicationContext().getSharedPreferences(getString(R.string.sharedpreference_name) ,Context.MODE_PRIVATE);
+        layout_video_quality = (LinearLayout) findViewById(R.id.layout_video_quality);
+        layout_about = (LinearLayout) findViewById(R.id.layout_about);
+        txt_video_quality = (TextView) findViewById(R.id.txt_video_quality);
 
-        Config.playbackQuality = sharedPref.getInt(getString(R.string.videoQuality), 3);
+        layout_about.setOnClickListener(this);
+        layout_video_quality.setOnClickListener(this);
+        txt_video_quality.setText(Config.getPlaybackQuality());
 
-        stopNotPlaying.setChecked(sharedPref.getBoolean(getString(R.string.finishOnEnd), false));
-        quality.setText(Config.getPlaybackQuality());
-
-        videoQuality.setOnClickListener(this);
-        playerType.setOnClickListener(this);
-        about.setOnClickListener(this);
-        increaseCount.setOnClickListener(this);
-        decreaseCount.setOnClickListener(this);
-        fullscreenOnRotate.setOnClickListener(this);
-
-        stopNotPlaying.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (isChecked == true || isChecked == false) {
-                    Config.finishOnEnd = isChecked;
-                    SharedPreferences.Editor editor = sharedPref.edit();
-                    editor.putBoolean(getString(R.string.finishOnEnd), isChecked);
-                    editor.commit();
-                }
-            }
-        });
-
+        Config.playbackQuality = sharedPreferences.getInt(getString(R.string.videoQuality), 3);
     }
 
     @Override
@@ -81,25 +64,25 @@ public class Settings extends AppCompatActivity implements View.OnClickListener{
 
     @Override
     public void onClick(View v) {
-        switch (v.getId()){
-            case R.id.video_quality:
+        switch (v.getId()) {
+            case R.id.layout_video_quality:
                 final int[] checked = new int[1];
                 AlertDialog.Builder builder = new AlertDialog.Builder(Settings.this);
-                builder.setTitle("Video Quality");
-                builder.setPositiveButton("Done", new DialogInterface.OnClickListener() {
+                builder.setTitle(getString(R.string.video_quality));
+                builder.setPositiveButton(getString(R.string.done), new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
                         Config.playbackQuality = checked[0];
-                        SharedPreferences.Editor editor = sharedPref.edit();
+                        SharedPreferences.Editor editor = sharedPreferences.edit();
                         editor.putInt(getString(R.string.videoQuality), checked[0]);
                         editor.commit();
-                        quality.setText(Config.getPlaybackQuality());
+                        txt_video_quality.setText(Config.getPlaybackQuality());
                         LogUtil.show("New Video Quality => ", Config.getPlaybackQuality());
                     }
                 });
                 String[] items = {"Auto", "1080p", "720p", "480p", "360p", "240p", "144p"};
-                checked[0] = sharedPref.getInt(getString(R.string.videoQuality), 3);
+                checked[0] = sharedPreferences.getInt(getString(R.string.videoQuality), 3);
                 LogUtil.show("Now Video Quality => ", Config.getPlaybackQuality());
-                builder.setSingleChoiceItems(items, checked[0], new DialogInterface.OnClickListener(){
+                builder.setSingleChoiceItems(items, checked[0], new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int ith) {
                         checked[0] = ith;
@@ -108,30 +91,10 @@ public class Settings extends AppCompatActivity implements View.OnClickListener{
                 AlertDialog dialog = builder.create();
                 dialog.show();
                 break;
-            case R.id.about:
-                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("http://imshyam.github.io/mintube"));
+            case R.id.layout_about:
+                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/HsunTsai/jumptube"));
                 startActivity(browserIntent);
                 break;
-            default:
-                Snackbar snackbar = Snackbar
-                        .make(layout_settings, "Action Coming soon", Snackbar.LENGTH_SHORT);
-                //Changing Text Color
-                View snkBar = snackbar.getView();
-                TextView tv = (TextView) snkBar.findViewById(android.support.design.R.id.snackbar_text);
-                tv.setTextColor(Color.parseColor("#e52d27"));
-                snackbar.show();
         }
-    }
-
-    private void initViews() {
-        quality = (TextView) findViewById(R.id.text_view_quality);
-        layout_settings = (LinearLayout) findViewById(R.id.layout_settings);
-        videoQuality = (LinearLayout) findViewById(R.id.video_quality);
-        playerType = (LinearLayout) findViewById(R.id.player_type);
-        about = (LinearLayout) findViewById(R.id.about);
-        increaseCount = (Button) findViewById(R.id.increase_repeat_count);
-        decreaseCount = (Button) findViewById(R.id.decrease_repeat_count);
-        fullscreenOnRotate = (CheckBox) findViewById(R.id.fullscreen_on_rotate);
-        stopNotPlaying = (CheckBox) findViewById(R.id.stop_not_playing);
     }
 }

@@ -29,7 +29,6 @@
     <string name="videoQuality">VIDEO_QUALITY</string>
     <string name="finishOnEnd">FINISH_ON_END</string>
 
-
     <!--Hint-->
     <string name="get_permission">Get Permission</string>
     <string name="press_again_to_exit">Press again to exit this application</string>
@@ -39,7 +38,14 @@
     <string name="check_internet">Please check your network</string>
 
     <!--Common-->
+    <string name="done">Done</string>
     <string name="sure">Sure</string>
     <string name="cancel">Cancel</string>
     <string name="no">No</string>
+
+    <!--Settings-->
+    <string name="general_settings">General Settings</string>
+    <string name="video_quality">Video Quality</string>
+    <string name="learn_more">Learn More</string>
+    <string name="about">About</string>
 </resources>

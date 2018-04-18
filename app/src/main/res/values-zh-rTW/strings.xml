@@ -32,13 +32,14 @@
     <string name="check_internet">請檢查您的網路</string>
 
     <!--Common-->
+    <string name="done">完成</string>
     <string name="sure">確定</string>
     <string name="cancel">取消</string>
     <string name="no">否</string>
 
     <!--Settings-->
-    <string name="player_width">播放器寬度</string>
-    <string name="player_height">播放器高度</string>
-
-
+    <string name="general_settings">普通設定</string>
+    <string name="video_quality">影片品質</string>
+    <string name="learn_more">知道更多</string>
+    <string name="about">關於</string>
 </resources>
