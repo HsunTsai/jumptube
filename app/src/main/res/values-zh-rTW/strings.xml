@@ -1,16 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">JumpTube</string>
-    <string name="settings">設定</string>
-    <string name="title_activity_youtube_player">Youtube播放器</string>
-    <string name="error_player">無法載入</string>
+    <string name="app_version">版本 1.0.0</string>
 
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="title_activity_ytube_view">MinTubeView</string>
-    <string name="add_ytube">MinTube</string>
+    <string name="navigation_drawer_open">已開啟側欄選單</string>
+    <string name="navigation_drawer_close">已關閉側欄選單</string>
 
-    <string name="svg_play">M8,5v14l11,-7z</string>
-    <string name="svg_pause">M6,19h4V5H6v14zm8,-14v14h4V5h-4z</string>
     <string name="dialog_get_permission">Permit to Draw over other apps</string>
     <string name="string_get_permission">請允許JumpTube使用浮動資訊框</string>
     <string name="repeat_type">重複播放種類</string>
@@ -32,14 +27,22 @@
     <string name="check_internet">請檢查您的網路</string>
 
     <!--Common-->
+    <string name="settings">設定</string>
+    <string name="about">關於</string>
+    <string name="sticker_size">大頭貼大小</string>
+    <string name="video_size">影片品質</string>
+    <string name="video_quality">影片品質</string>
+    <string name="login">登入</string>
+    <string name="logout">登出</string>
+    <string name="favorite">收藏</string>
     <string name="done">完成</string>
     <string name="sure">確定</string>
     <string name="cancel">取消</string>
     <string name="no">否</string>
+    <string name="version">Version</string>
 
     <!--Settings-->
     <string name="general_settings">普通設定</string>
-    <string name="video_quality">影片品質</string>
     <string name="learn_more">知道更多</string>
-    <string name="about">關於</string>
+
 </resources>

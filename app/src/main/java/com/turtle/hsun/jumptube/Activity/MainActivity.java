@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.database.MatrixCursor;
 import android.graphics.Bitmap;
+import android.graphics.Rect;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -34,6 +35,7 @@ import android.webkit.WebResourceRequest;
 import android.webkit.WebResourceResponse;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.Toast;
 
@@ -106,17 +108,24 @@ public class MainActivity extends AppCompatActivity
                     searchManager.getSearchableInfo(getComponentName()));
             searchView.setOnQueryTextListener(this);
         }
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.action_settings:
-                startActivity(new Intent(this, Settings.class));
-                return true;
+        // get AutoCompleteTextView from SearchView
+        final AutoCompleteTextView searchEditText = (AutoCompleteTextView) searchView.findViewById(R.id.search_src_text);
+        final View dropDownAnchor = searchView.findViewById(searchEditText.getDropDownAnchor());
+        if (dropDownAnchor != null) {
+            dropDownAnchor.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
+                @Override
+                public void onLayoutChange(View v, int left, int top, int right, int bottom,
+                                           int oldLeft, int oldTop, int oldRight, int oldBottom) {
+                    int point[] = new int[2];
+                    dropDownAnchor.getLocationOnScreen(point);
+                    Rect screenSize = new Rect();
+                    getWindowManager().getDefaultDisplay().getRectSize(screenSize);
+                    int screenWidth = screenSize.width();
+                    searchEditText.setDropDownWidth(screenWidth);
+                }
+            });
         }
-        return super.onOptionsItemSelected(item);
+        return true;
     }
 
     @Override
@@ -381,6 +390,10 @@ public class MainActivity extends AppCompatActivity
             drawer.closeDrawer(GravityCompat.START);
             return;
         }
+        if (isExit) {
+            super.onBackPressed();
+            return;
+        }
         if (currentUrl.equals("https://m.youtube.com/")) {
             isExit = true;
             Toast.makeText(this, getString(R.string.press_again_to_exit), Toast.LENGTH_SHORT).show();
@@ -393,33 +406,18 @@ public class MainActivity extends AppCompatActivity
         } else {
             webView_youtube_list.goBack();
         }
-        if (isExit) {
-            super.onBackPressed();
-            return;
-        }
-
     }
 
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
-        // Handle navigation view item clicks here.
-        int id = item.getItemId();
-
-        if (id == R.id.nav_camera) {
-            // Handle the camera action
-        } else if (id == R.id.nav_gallery) {
-
-        } else if (id == R.id.nav_slideshow) {
-
-        } else if (id == R.id.nav_manage) {
-
-        } else if (id == R.id.nav_share) {
-
-        } else if (id == R.id.nav_send) {
-
+        switch (item.getItemId()) {
+            case R.id.nav_version:
+                return true;
+            case R.id.nav_learn_more:
+                Integer aaa = "123" == "123" ? 1 : 5;
+                break;
         }
-
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;

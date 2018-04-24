@@ -20,14 +20,6 @@
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
 
--keep public class com.turtle.hsun.jumptube.JavaScriptInterface
--keep public class * implements com.turtle.hsun.jumptube.JavaScriptInterface
--keepclassmembers class ccom.turtle.hsun.jumptube.JavaScriptInterface {
-    <methods>;
-}
-#For crashlytics in fabric
--keepattributes SourceFile,LineNumberTable,*Annotation*
--keep public class * extends java.lang.Exception
--printmapping mapping.txt
-#For SearchView
--keep class android.support.v7.widget.SearchView { *; }
+-dontwarn org.apache.http.**
+-keep class com.turtle.hsun.jumptube.JavaScriptInterface{ *; }
+-keep class android.support.v7.widget.SearchView { *; } #For SearchView

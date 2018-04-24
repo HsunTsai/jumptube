@@ -3,35 +3,55 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:showIn="navigation_view">
 
-    <group android:checkableBehavior="single">
-        <item
-            android:id="@+id/nav_camera"
-            android:icon="@drawable/ic_menu_camera"
-            android:title="Import" />
-        <item
-            android:id="@+id/nav_gallery"
-            android:icon="@drawable/ic_menu_gallery"
-            android:title="Gallery" />
-        <item
-            android:id="@+id/nav_slideshow"
-            android:icon="@drawable/ic_menu_slideshow"
-            android:title="Slideshow" />
-        <item
-            android:id="@+id/nav_manage"
-            android:icon="@drawable/ic_menu_manage"
-            android:title="Tools" />
-    </group>
+    <!--<group android:checkableBehavior="single">-->
+    <!--<item-->
+    <!--android:id="@+id/nav_camera"-->
+    <!--android:icon="@drawable/ic_menu_camera"-->
+    <!--android:title="Import" />-->
+    <!--<item-->
+    <!--android:id="@+id/nav_gallery"-->
+    <!--android:icon="@drawable/ic_menu_gallery"-->
+    <!--android:title="Gallery" />-->
+    <!--<item-->
+    <!--android:id="@+id/nav_slideshow"-->
+    <!--android:icon="@drawable/ic_menu_slideshow"-->
+    <!--android:title="Slideshow" />-->
+    <!--<item-->
+    <!--android:id="@+id/nav_manage"-->
+    <!--android:icon="@drawable/ic_menu_manage"-->
+    <!--android:title="Tools" />-->
+    <!--</group>-->
 
-    <item android:title="Communicate">
+    <item android:title="@string/settings">
         <menu>
             <item
-                android:id="@+id/nav_share"
-                android:icon="@drawable/ic_menu_share"
-                android:title="Share" />
+                android:id="@+id/nav_video_quality"
+                android:icon="@drawable/ic_high_quality"
+                android:title="@string/video_quality" />
             <item
-                android:id="@+id/nav_send"
-                android:icon="@drawable/ic_menu_send"
-                android:title="Send" />
+                android:id="@+id/nav_sticker_size"
+                android:icon="@drawable/ic_circle"
+                android:title="@string/sticker_size" />
+            <item
+                android:id="@+id/nav_video_size"
+                android:icon="@drawable/ic_featured_video"
+                android:title="@string/video_size" />
+            <item
+                android:id="@+id/nav_favorite"
+                android:icon="@drawable/ic_favorite"
+                android:title="@string/favorite" />
+            <item
+                android:id="@+id/nav_login_logout"
+                android:icon="@drawable/ic_insert_link"
+                android:title="@string/login" />
+            <item
+                android:id="@+id/nav_learn_more"
+                android:icon="@drawable/ic_info"
+                android:title="@string/learn_more" />
+            <item
+                android:id="@+id/nav_version"
+                android:icon="@drawable/ic_report"
+                android:title="@string/app_version" />
         </menu>
     </item>
 
