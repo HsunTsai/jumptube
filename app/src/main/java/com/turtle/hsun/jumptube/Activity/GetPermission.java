@@ -11,7 +11,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 
-import com.turtle.hsun.jumptube.Config;
+import com.turtle.hsun.jumptube.Config.Config;
 import com.turtle.hsun.jumptube.PlayerService;
 import com.turtle.hsun.jumptube.R;
 

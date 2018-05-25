@@ -21,6 +21,22 @@
     <!--android:icon="@drawable/ic_menu_manage"-->
     <!--android:title="Tools" />-->
     <!--</group>-->
+    <item android:title="@string/forward">
+        <menu>
+            <item
+                android:id="@+id/nav_home_page"
+                android:icon="@drawable/ic_home"
+                android:title="@string/home" />
+            <item
+                android:id="@+id/nav_trending_page"
+                android:icon="@drawable/ic_trending"
+                android:title="@string/trending" />
+            <item
+                android:id="@+id/nav_account_page"
+                android:icon="@drawable/ic_account"
+                android:title="@string/account" />
+        </menu>
+    </item>
 
     <item android:title="@string/settings">
         <menu>

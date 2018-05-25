@@ -15,7 +15,7 @@ public class HandleMessage {
         Bundle bundle = new Bundle();
         bundle.putString("title", title);
         register_success.setData(bundle);
-        handler.sendMessage(register_success);
+        if (null != handler) handler.sendMessage(register_success);
     }
 
     public static void set(Handler handler, String title, String message) {
@@ -26,7 +26,7 @@ public class HandleMessage {
             bundle.putString("message", message);
         }
         register_success.setData(bundle);
-        handler.sendMessage(register_success);
+        if (null != handler) handler.sendMessage(register_success);
     }
 
     public static void set(Handler handler, String title, Bundle bundle) {
@@ -36,6 +36,6 @@ public class HandleMessage {
         }
         bundle.putString("title", title);
         register_success.setData(bundle);
-        handler.sendMessage(register_success);
+        if (null != handler) handler.sendMessage(register_success);
     }
 }

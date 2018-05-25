@@ -1,4 +1,4 @@
-package com.turtle.hsun.jumptube.Custom;
+package com.turtle.hsun.jumptube.Custom.Components;
 
 import android.annotation.SuppressLint;
 import android.app.Notification;
@@ -11,9 +11,10 @@ import android.os.Build;
 import android.support.v4.app.NotificationCompat;
 import android.widget.RemoteViews;
 
+import com.turtle.hsun.jumptube.Activity.MainActivity;
 import com.turtle.hsun.jumptube.AsyncTask.ImageLoadTask;
 import com.turtle.hsun.jumptube.AsyncTask.LoadDetailsTask;
-import com.turtle.hsun.jumptube.Config;
+import com.turtle.hsun.jumptube.Config.Config;
 import com.turtle.hsun.jumptube.PlayerService;
 import com.turtle.hsun.jumptube.R;
 import com.turtle.hsun.jumptube.Utils.LogUtil;
@@ -44,12 +45,19 @@ public class CustomNotificationManager {
         notification_large = new RemoteViews(context.getPackageName(), R.layout.notification_large);
         notification_small = new RemoteViews(context.getPackageName(), R.layout.notification_small);
 
+        Intent notificationIntent = new Intent(context, MainActivity.class);
+        notificationIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP
+                | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        PendingIntent intent = PendingIntent.getActivity(context, 0,
+                notificationIntent, 0);
+
         //Notification inti
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context)
                 .setSmallIcon(R.drawable.ic_status_bar)
                 .setVisibility(Notification.VISIBILITY_PUBLIC)
                 .setContent(notification_small)
                 .setPriority(Notification.PRIORITY_MAX)
+                .setContentIntent(intent)
                 .setAutoCancel(false);
         notification = builder.build();
 

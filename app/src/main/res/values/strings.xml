@@ -1,6 +1,6 @@
 <resources>
     <string name="app_name">JumpTube</string>
-    <string name="app_version">Version 1.0.0</string>
+    <string name="app_version">Version 1.0.1</string>
 
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
@@ -11,7 +11,6 @@
     <string name="no_of_repeats">NO_OF_REPEATS</string>
     <string name="player_type">PLAYER_TYPE</string>
     <string name="init">INITIALIZED</string>
-    <string name="sharedpreference_name">JumpTubeSP</string>
     <string name="search">search</string>
     <string name="search_hint">Search YouTube</string>
     <string name="videoQuality">VIDEO_QUALITY</string>
@@ -24,6 +23,9 @@
     <string name="desktop_not_support">Desktop view unavailable</string>
     <string name="need_permission">You need to grant the permission</string>
     <string name="check_internet">Please check your network</string>
+    <string name="unStart">This feature has not been started</string>
+    <string name="version_available">Latest version available</string>
+    <string name="version_available_detail">Would you want to download it?</string>
 
     <!--Common-->
     <string name="settings">Settings</string>
@@ -39,6 +41,12 @@
     <string name="cancel">Cancel</string>
     <string name="no">No</string>
     <string name="version">Version</string>
+    <string name="forward">Forward</string>
+    <string name="home">Home Page</string>
+    <string name="trending">Tredning Page</string>
+    <string name="account">Account Page</string>
+    <string name="update_now">Update Now</string>
+    <string name="later">Later</string>
 
     <!--Settings-->
     <string name="general_settings">General Settings</string>

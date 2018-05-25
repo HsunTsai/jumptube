@@ -7,15 +7,16 @@
 
     <LinearLayout
         android:id="@+id/layout_player"
-        android:layout_margin="2dp"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_margin="2dp"
+        android:background="@color/alpha_black"
         android:orientation="vertical">
 
         <RelativeLayout
-            android:layout_weight="1"
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="match_parent"
+            android:layout_weight="1">
 
             <RelativeLayout
                 android:id="@+id/layout_webView"
@@ -24,8 +25,8 @@
 
             <ImageView
                 android:id="@+id/img_youtube"
-                android:layout_width="60dp"
-                android:layout_height="60dp"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
                 android:layout_centerHorizontal="true"
                 android:layout_centerVertical="true"
                 android:src="@drawable/youtube_icon"
@@ -42,11 +43,10 @@
             android:layout_width="match_parent"
             android:layout_height="30dp"
             android:layout_marginTop="2dp"
-            android:background="@android:color/black"
             android:gravity="right|center_vertical"
             android:orientation="horizontal">
 
-            <com.turtle.hsun.jumptube.Custom.CustomSeekbar
+            <com.turtle.hsun.jumptube.Custom.Components.CustomSeekbar
                 android:id="@+id/seekBar_player"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -62,15 +62,15 @@
             <ImageView
                 android:id="@+id/img_entire_width"
                 android:layout_width="40dp"
-                android:scaleType="centerInside"
                 android:layout_height="match_parent"
+                android:scaleType="centerInside"
                 android:src="@drawable/ic_entire_width" />
 
             <ImageView
                 android:id="@+id/img_fullscreen"
                 android:layout_width="40dp"
-                android:scaleType="centerInside"
                 android:layout_height="match_parent"
+                android:scaleType="centerInside"
                 android:src="@drawable/ic_fullscreen" />
 
         </LinearLayout>

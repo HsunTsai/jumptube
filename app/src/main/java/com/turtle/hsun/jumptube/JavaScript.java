@@ -53,6 +53,14 @@ public class JavaScript {
         return "javascript:window.Interface.showVID(player.getVideoData()['video_id']);";
     }
 
+    public static String getPlaybackQuality() {
+        return "javascript:window.Interface.showPlaybackQuality(player.getPlaybackQuality());";
+    }
+
+//    public static String getAvailableQualityLevels() {
+//        return "javascript:window.Interface.showAvailableQualityLevels(player.getAvailableQualityLevels());";
+//    }
+
     public static String seekToZero() {
         return "javascript:player.seekTo(0)";
     }

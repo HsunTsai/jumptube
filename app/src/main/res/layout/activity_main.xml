@@ -15,7 +15,7 @@
 
         <include layout="@layout/component_toolbar" />
 
-        <com.turtle.hsun.jumptube.Custom.CustomSwipeRefresh
+        <com.turtle.hsun.jumptube.Custom.Components.CustomSwipeRefresh
             android:id="@+id/swipeRefreshLayout"
             android:layout_width="match_parent"
             android:layout_height="match_parent">
@@ -25,7 +25,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent" />
 
-        </com.turtle.hsun.jumptube.Custom.CustomSwipeRefresh>
+        </com.turtle.hsun.jumptube.Custom.Components.CustomSwipeRefresh>
 
     </LinearLayout>
 

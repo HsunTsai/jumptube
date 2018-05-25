@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">JumpTube</string>
-    <string name="app_version">版本 1.0.0</string>
+    <string name="app_version">版本 1.0.1</string>
 
     <string name="navigation_drawer_open">已開啟側欄選單</string>
     <string name="navigation_drawer_close">已關閉側欄選單</string>
@@ -12,7 +12,6 @@
     <string name="no_of_repeats">重複播放次數</string>
     <string name="player_type">播放器種類</string>
     <string name="init">初始化</string>
-    <string name="sharedpreference_name">JumpTubeSP</string>
     <string name="search">搜尋</string>
     <string name="search_hint">搜尋YouTube</string>
     <string name="videoQuality">VIDEO_QUALITY</string>
@@ -25,6 +24,9 @@
     <string name="desktop_not_support">桌面功能尚未支援</string>
     <string name="need_permission">您需要同意此權限才能開啟視窗</string>
     <string name="check_internet">請檢查您的網路</string>
+    <string name="unStart">這個功能尚未啟動唷</string>
+    <string name="version_available">可取得新的版本</string>
+    <string name="version_available_detail">是否要更新您的App呢?</string>
 
     <!--Common-->
     <string name="settings">設定</string>
@@ -39,7 +41,13 @@
     <string name="sure">確定</string>
     <string name="cancel">取消</string>
     <string name="no">否</string>
-    <string name="version">Version</string>
+    <string name="version">版本</string>
+    <string name="forward">前往</string>
+    <string name="home">首頁</string>
+    <string name="trending">發燒頁面</string>
+    <string name="account">帳戶頁面</string>
+    <string name="update_now">立馬更新</string>
+    <string name="later">晚點</string>
 
     <!--Settings-->
     <string name="general_settings">普通設定</string>

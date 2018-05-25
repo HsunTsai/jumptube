@@ -1,7 +1,10 @@
-package com.turtle.hsun.jumptube;
+package com.turtle.hsun.jumptube.Config;
+
+import android.content.SharedPreferences;
 
 public class Config {
-    public static Boolean develop_mode = true;
+    public static Boolean develop_mode = false;
+    public static SharedPreferences sharedPreferences;
 
     //For Result Activity
     public static int OVERLAY_PERMISSION_REQ_CODE = 12345,
@@ -23,7 +26,7 @@ public class Config {
     public static boolean finishOnEnd = false;
 
     //Playback Quality
-    public static int playbackQuality = 3;
+    public static int playbackQuality = 0;
 
     //Float window (Only for 1 ~ 5)
     public static int windowsScaleType = 6;
@@ -33,6 +36,21 @@ public class Config {
         String[] strPlaybackQuality = {"auto", "hd1080", "hd720", "large", "medium", "small", "tiny"};
         return strPlaybackQuality[playbackQuality];
     }
+
+    public static String getPlaybackQuality(Integer index) {
+        //0 = auto, 1 = hd1080, 2 = hd720, 3 = large(480p), 4 = medium(360p), 5 = small(240p), 6 = tiny(144p),
+        String[] strPlaybackQuality = {"auto", "hd1080", "hd720", "large", "medium", "small", "tiny"};
+        return strPlaybackQuality[index];
+    }
+
+    public static String
+            webHomePage_1 = "https://m.yo",
+            webHomePage_2 = "utube.com/",
+            webHomePage = webHomePage_1 + webHomePage_2,
+            webAccountPage = webHomePage + "feed/account",
+            webTrendingPage = webHomePage + "feed/trending",
+            webSubscriptionPage = webHomePage + "feed/subscriptions",
+            youtubeSuggestURL = "http://suggestqueries.google.com/complete/search?client=youtube&ds=yt&client=firefox&q=";
 
     //Actions
     public interface ACTION {

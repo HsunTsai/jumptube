@@ -17,7 +17,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
-            <com.turtle.hsun.jumptube.Custom.CircularImageView xmlns:app="http://schemas.android.com/apk/res-auto"
+            <com.turtle.hsun.jumptube.Custom.Components.CircularImageView xmlns:app="http://schemas.android.com/apk/res-auto"
                 android:id="@+id/img_head_icon"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
@@ -29,7 +29,7 @@
                 android:layout_height="30dp"
                 android:layout_centerHorizontal="true"
                 android:layout_centerVertical="true"
-                android:alpha="0.7"
+                android:alpha="0.5"
                 android:src="@drawable/youtube_icon" />
 
         </RelativeLayout>

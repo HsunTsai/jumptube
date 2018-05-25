@@ -3,9 +3,10 @@ package com.turtle.hsun.jumptube;
 import android.os.Handler;
 import android.webkit.JavascriptInterface;
 
-import com.turtle.hsun.jumptube.Custom.WebPlayer;
+import com.turtle.hsun.jumptube.Custom.Components.WebPlayer;
 import com.turtle.hsun.jumptube.Utils.HandleMessage;
 import com.turtle.hsun.jumptube.Utils.LogUtil;
+
 
 /**
  * Created by Hsun on 18/4/12.
@@ -72,6 +73,16 @@ public class JavaScriptInterface {
         LogUtil.show("New Video Id ", videoID);
         HandleMessage.set(handler, "setImageTitleAuthor", String.valueOf(videoID));
     }
+
+    @JavascriptInterface
+    public void showPlaybackQuality(String quailty) {
+        LogUtil.show("get Quality ", quailty);
+    }
+
+//    @JavascriptInterface
+//    public void showAvailableQualityLevels(String quailtyLevels) {
+//        LogUtil.show("get QualityLevels ", quailtyLevels.toString());
+//    }
 
     @JavascriptInterface
     public void playlistItems(final String[] items) {

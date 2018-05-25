@@ -1,4 +1,4 @@
-package com.turtle.hsun.jumptube;
+package com.turtle.hsun.jumptube.Config;
 
 /**
  * Created by Hsun on 18/4/12.

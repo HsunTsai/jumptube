@@ -1,10 +1,9 @@
-package com.turtle.hsun.jumptube.Custom;
+package com.turtle.hsun.jumptube.Custom.Components;
 
 import android.app.Service;
 import android.content.Intent;
 import android.os.Handler;
 import android.os.Vibrator;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewTreeObserver;

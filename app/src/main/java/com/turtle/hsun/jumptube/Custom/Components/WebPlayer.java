@@ -1,4 +1,4 @@
-package com.turtle.hsun.jumptube.Custom;
+package com.turtle.hsun.jumptube.Custom.Components;
 
 import android.content.Context;
 import android.os.Build;

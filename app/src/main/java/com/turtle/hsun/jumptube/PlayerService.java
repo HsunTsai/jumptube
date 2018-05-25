@@ -30,13 +30,17 @@ import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 
 import com.turtle.hsun.jumptube.Activity.FullscreenWebPlayer;
-import com.turtle.hsun.jumptube.Custom.CustomImageHeader;
-import com.turtle.hsun.jumptube.Custom.WebPlayer;
-import com.turtle.hsun.jumptube.Custom.CustomNotificationManager;
-import com.turtle.hsun.jumptube.Custom.CustomSeekbar;
+import com.turtle.hsun.jumptube.Config.Config;
+import com.turtle.hsun.jumptube.Config.ConstantStrings;
+import com.turtle.hsun.jumptube.Custom.Components.CustomImageHeader;
+import com.turtle.hsun.jumptube.Custom.Components.WebPlayer;
+import com.turtle.hsun.jumptube.Custom.Components.CustomNotificationManager;
+import com.turtle.hsun.jumptube.Custom.Components.CustomSeekbar;
 import com.turtle.hsun.jumptube.Utils.HandleMessage;
 import com.turtle.hsun.jumptube.Utils.LogUtil;
 import com.turtle.hsun.jumptube.Utils.ServicePlayerLayoutParams;
+
+import static com.turtle.hsun.jumptube.Config.Config.sharedPreferences;
 
 import java.util.Timer;
 import java.util.TimerTask;
@@ -56,7 +60,6 @@ public class PlayerService extends Service implements View.OnClickListener {
 
     //Parameter
     private Context context;
-    private SharedPreferences sharedPreferences;
     private WindowManager windowManager;
     public static Handler handler;
     private String videoID, playListID;
@@ -401,6 +404,7 @@ public class PlayerService extends Service implements View.OnClickListener {
 
 
     private void pausePlay() {
+        webPlayer.loadScript(JavaScript.getPlaybackQuality());
         if (isVideoPlaying) {
             if (isReplayVideo || isReplayPlaylist) {
                 if (Config.linkType == 1) {
@@ -654,6 +658,11 @@ public class PlayerService extends Service implements View.OnClickListener {
                     case "playStatus_buffering":
                         String quality = Config.getPlaybackQuality();
                         webPlayer.loadScript(JavaScript.resetPlaybackQuality(quality));
+                        break;
+                    case "setPlaybackQuality":
+//                        Integer qualityIndex = Integer.parseInt(msg.getData().getString("message", "0"));
+//                        String str_quality = Config.getPlaybackQuality(qualityIndex);
+                        webPlayer.loadScript(JavaScript.resetPlaybackQuality("144p"));
                         break;
                     case "updatePlayerWindow":
                         windowManager.updateViewLayout(windows_player, param_player);

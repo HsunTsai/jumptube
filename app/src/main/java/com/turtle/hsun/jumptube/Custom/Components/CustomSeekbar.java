@@ -1,4 +1,4 @@
-package com.turtle.hsun.jumptube.Custom;
+package com.turtle.hsun.jumptube.Custom.Components;
 
 import android.annotation.SuppressLint;
 import android.content.Context;

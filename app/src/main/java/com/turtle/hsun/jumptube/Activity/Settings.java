@@ -5,24 +5,21 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.design.widget.Snackbar;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
-import android.widget.CheckBox;
-import android.widget.CompoundButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.turtle.hsun.jumptube.Config;
+import com.turtle.hsun.jumptube.Config.Config;
 import com.turtle.hsun.jumptube.R;
 import com.turtle.hsun.jumptube.Utils.LogUtil;
+
+import static com.turtle.hsun.jumptube.Config.Config.sharedPreferences;
 
 public class Settings extends AppCompatActivity implements View.OnClickListener {
 
@@ -31,7 +28,6 @@ public class Settings extends AppCompatActivity implements View.OnClickListener 
     private TextView txt_video_quality;
 
     //Parameters
-    private SharedPreferences sharedPreferences;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,7 +37,7 @@ public class Settings extends AppCompatActivity implements View.OnClickListener 
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        sharedPreferences = getApplicationContext().getSharedPreferences(getString(R.string.sharedpreference_name), Context.MODE_PRIVATE);
+        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
 
         layout_video_quality = (LinearLayout) findViewById(R.id.layout_video_quality);
         layout_about = (LinearLayout) findViewById(R.id.layout_about);

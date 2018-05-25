@@ -12,7 +12,7 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     android:theme="@style/ThemeOverlay.AppCompat.Dark">
 
-    <com.turtle.hsun.jumptube.Custom.CircularImageView xmlns:app="http://schemas.android.com/apk/res-auto"
+    <com.turtle.hsun.jumptube.Custom.Components.CircularImageView xmlns:app="http://schemas.android.com/apk/res-auto"
         android:id="@+id/imageView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -20,7 +20,7 @@
         android:src="@mipmap/ic_launcher_round" />
 
 
-    <!--<com.turtle.hsun.jumptube.Custom.CircularImageView-->
+    <!--<com.turtle.hsun.jumptube.Custom.Component.CircularImageView-->
         <!--android:id="@+id/imageView"-->
         <!--android:layout_width="wrap_content"-->
         <!--android:layout_height="wrap_content"-->

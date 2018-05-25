@@ -2,11 +2,12 @@ package com.turtle.hsun.jumptube.Activity;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.SearchManager;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
-import android.database.Cursor;
-import android.database.MatrixCursor;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.Rect;
 import android.net.Uri;
@@ -15,11 +16,10 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.os.StrictMode;
-import android.support.v4.widget.CursorAdapter;
+import android.preference.PreferenceManager;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.SearchView;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -29,7 +29,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.ViewGroup;
 import android.view.ViewStub;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebResourceResponse;
@@ -39,16 +38,21 @@ import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.Toast;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
-import com.android.volley.VolleyLog;
-import com.android.volley.toolbox.JsonArrayRequest;
-import com.turtle.hsun.jumptube.API.API;
-import com.turtle.hsun.jumptube.API.ResponseModel;
-import com.turtle.hsun.jumptube.Config;
-import com.turtle.hsun.jumptube.Custom.CustomSwipeRefresh;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
+import com.github.javiersantos.appupdater.AppUpdater;
+import com.github.javiersantos.appupdater.enums.Display;
+import com.github.javiersantos.appupdater.enums.UpdateFrom;
+import com.turtle.hsun.jumptube.Config.Config;
+import com.turtle.hsun.jumptube.Custom.Components.CustomSwipeRefresh;
+import com.turtle.hsun.jumptube.Custom.Utils.SuggestAdapter;
 import com.turtle.hsun.jumptube.PlayerService;
 import com.turtle.hsun.jumptube.R;
+import com.turtle.hsun.jumptube.Utils.Decode;
 import com.turtle.hsun.jumptube.Utils.HandleMessage;
 import com.turtle.hsun.jumptube.Utils.Internet;
 import com.turtle.hsun.jumptube.Utils.LogUtil;
@@ -58,14 +62,17 @@ import com.turtle.hsun.jumptube.Utils.UITransform;
 import org.json.JSONArray;
 import org.json.JSONException;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
-import static com.turtle.hsun.jumptube.Config.OVERLAY_PERMISSION_REQ_CODE;
+import static com.turtle.hsun.jumptube.Config.Config.OVERLAY_PERMISSION_REQ_CODE;
+import static com.turtle.hsun.jumptube.Config.Config.webAccountPage;
+import static com.turtle.hsun.jumptube.Config.Config.webHomePage;
+import static com.turtle.hsun.jumptube.Config.Config.webSubscriptionPage;
+import static com.turtle.hsun.jumptube.Config.Config.webTrendingPage;
+import static com.turtle.hsun.jumptube.Config.Config.sharedPreferences;
+import static com.turtle.hsun.jumptube.Config.Config.youtubeSuggestURL;
+import static com.turtle.hsun.jumptube.Config.ServerDomain.appVersionUrl;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, SearchView.OnQueryTextListener, View.OnClickListener, SwipeRefreshLayout.OnRefreshListener {
@@ -75,13 +82,13 @@ public class MainActivity extends AppCompatActivity
     private WebView webView_youtube_list;
     private Button bt_retry_connect, bt_settings, bt_exit_app;
     private SearchView searchView;
+    private SearchView.SearchAutoComplete searchAutoComplete;
     private ViewStub viewStub;
     private CustomSwipeRefresh swipeRefreshLayout;
 
     //Parameter
-    private String youtubeHome = "https://m.youtube.com/",
-            currentUrl = "https://m.youtube.com/",
-            videoID, playListID;
+    private RequestQueue queue;
+    private String currentUrl, videoID, playListID, searchHistory = "[]";
     private Boolean isExit = false;
     private Handler handler;
 
@@ -89,15 +96,21 @@ public class MainActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        if (android.os.Build.VERSION.SDK_INT > 9) {
-            StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-            StrictMode.setThreadPolicy(policy);
-        }
+        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        StrictMode.setThreadPolicy(policy);
         activity = this;
+        //init playing quality
+        Config.playbackQuality = sharedPreferences.getInt(getString(R.string.videoQuality), 0);
+        queue = Volley.newRequestQueue(this);
         Handler();
         initView();
+
+        //check app version
+        checkAppVersion();
     }
 
+    @SuppressLint("RestrictedApi")
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_main, menu);
@@ -107,6 +120,20 @@ public class MainActivity extends AppCompatActivity
             searchView.setSearchableInfo(
                     searchManager.getSearchableInfo(getComponentName()));
             searchView.setOnQueryTextListener(this);
+
+            //searchAutoComplete default hold query with 2 words,
+            //if we want to query when keyword length equal one word, we should setThreshold
+            searchAutoComplete = (SearchView.SearchAutoComplete) searchView.findViewById(R.id.search_src_text);
+            searchAutoComplete.setThreshold(0);
+            searchHistory = sharedPreferences.getString("searchHistory", "[]");
+            HandleMessage.set(handler, "showSuggestionList", "[\"歷史資料\"," + searchHistory + "]");
+
+            searchView.setOnQueryTextFocusChangeListener(new View.OnFocusChangeListener() {
+                @Override
+                public void onFocusChange(View v, boolean hasFocus) {
+                    searchAutoComplete.showDropDown();
+                }
+            });
         }
         // get AutoCompleteTextView from SearchView
         final AutoCompleteTextView searchEditText = (AutoCompleteTextView) searchView.findViewById(R.id.search_src_text);
@@ -132,15 +159,43 @@ public class MainActivity extends AppCompatActivity
     public boolean onQueryTextSubmit(String query) {
         webView_youtube_list.loadUrl("http://m.youtube.com/results?q=" + query);
         searchView.clearFocus();
+        //紀錄搜尋內容
+        try {
+            JSONArray searchHistoryArray = new JSONArray(searchHistory);
+            for (int i = searchHistoryArray.length() - 1; i > -1; --i) {
+                if (searchHistoryArray.getString(i).equals(query)) searchHistoryArray.remove(i);
+            }
+            if (searchHistoryArray.length() > 10) searchHistoryArray.remove(10);
+            for (int i = searchHistoryArray.length() - 1; i > -1; --i) {
+                searchHistoryArray.put((i + 1), searchHistoryArray.getString(i));
+            }
+            searchHistoryArray.put(0, query);
+            searchHistory = searchHistoryArray.toString();
+            sharedPreferences.edit().putString("searchHistory", searchHistory).apply();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
         return true;
     }
 
     @Override
     public boolean onQueryTextChange(String keyword) {
         if (keyword.length() > 0) {
-            GetYoutubeSuggestion getYoutubeSuggestion = new GetYoutubeSuggestion();
-            getYoutubeSuggestion.setData(keyword);
-            getYoutubeSuggestion.run();
+            StringRequest getSuggestArray = new StringRequest(Request.Method.GET, youtubeSuggestURL + keyword,
+                    new Response.Listener<String>() {
+                        @Override
+                        public void onResponse(String response) {
+                            HandleMessage.set(handler, "showSuggestionList", Decode.unicodeToUtf8(response));
+                        }
+                    }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError volleyError) {
+                    Log.e("responseresponse", volleyError.getMessage());
+                }
+            });
+            queue.add(getSuggestArray);
+        } else {
+            HandleMessage.set(handler, "showSuggestionList", "[\"歷史資料\"," + searchHistory + "]");
         }
         return true;
     }
@@ -178,7 +233,7 @@ public class MainActivity extends AppCompatActivity
             webView_youtube_list.getSettings().setJavaScriptEnabled(true);
             webView_youtube_list.setWebViewClient(new webViewClient());
             webView_youtube_list.canGoBack();
-            webView_youtube_list.loadUrl(youtubeHome);
+            webView_youtube_list.loadUrl(webHomePage);
         } else {
             viewStub.setLayoutResource(R.layout.component_no_internet);
             viewStub.inflate();
@@ -198,12 +253,12 @@ public class MainActivity extends AppCompatActivity
             super.onPageStarted(view, url, bitmap);
             LogUtil.show("Main Page Loading to ", url);
             HandleMessage.set(handler, "refresh_start");
-            currentUrl = url;
         }
 
         @Override
-        public void onPageFinished(WebView view, String str) {
-            super.onPageFinished(view, str);
+        public void onPageFinished(WebView view, String url) {
+            super.onPageFinished(view, url);
+            currentUrl = url;
             HandleMessage.set(handler, "refresh_finish");
         }
 
@@ -222,50 +277,24 @@ public class MainActivity extends AppCompatActivity
                 if (String.valueOf(request.getUrl()).contains("http://m.youtube.com/watch?") ||
                         String.valueOf(request.getUrl()).contains("https://m.youtube.com/watch?")) {
                     LogUtil.show("loading URL => ", String.valueOf(request.getUrl()));
-
                     String url = String.valueOf(request.getUrl());
-                    videoID = url.substring(url.indexOf("&v=") + 3, url.length());
-                    String listID = url.substring(url.indexOf("&list=") + 6, url.length());
-                    Pattern pattern = Pattern.compile(
-                            "([A-Za-z0-9_-]+)&[\\w]+=.*",
-                            Pattern.CASE_INSENSITIVE);
-                    Matcher matcher = pattern.matcher(listID);
-                    playListID = "";
-                    if (matcher.matches()) playListID = matcher.group(1);
-                    if (listID.contains("m.youtube.com")) {
-                        playListID = null;
+                    Uri uri = Uri.parse(url);
+                    videoID = uri.getQueryParameter("v");
+                    playListID = uri.getQueryParameter("list");
+
+                    if (null == playListID) {
+                        //this url is single video
+                        //do nothing
+                        LogUtil.show("Playing Single Video ID => ", videoID);
                     } else {
+                        //this url is play list
                         Config.linkType = 1;
+                        LogUtil.show("Playing Video List ID => ", playListID);
                     }
-
                     HandleMessage.set(handler, "startService", playListID);
-
-                    LogUtil.show("loading Video ID => ", url);
-                    LogUtil.show("loading List ID => ", String.valueOf(listID));
-                    LogUtil.show("loading PlayList ID => ", playListID);
-
                 }
             }
             return super.shouldInterceptRequest(view, request);
-        }
-    }
-
-    private class GetYoutubeSuggestion extends Thread {
-        public String keyword = "";
-
-        private void setData(String keyword) {
-            this.keyword = keyword;
-        }
-
-        @Override
-        public void run() {
-            ResponseModel responseModel = API.getYoutubeSuggest(this.keyword);
-            if (responseModel.getResponseCode() == 200) {
-                HandleMessage.set(handler, "showSuggestionList", responseModel.getMessgae());
-            } else if (responseModel.getResponseCode() == 9999) {
-                //沒有網路
-                HandleMessage.set(handler, "check_internet");
-            }
         }
     }
 
@@ -306,8 +335,7 @@ public class MainActivity extends AppCompatActivity
                         break;
                     case "startService":
                         String playListID = msg.getData().getString("message", null);
-                        webView_youtube_list.stopLoading();
-                        webView_youtube_list.goBack();
+                        webView_youtube_list.loadUrl(currentUrl);
                         if (Service.isRunning(activity, PlayerService.class)) {
                             LogUtil.show("Service => ", "Already Running!");
                             Bundle bundle = new Bundle();
@@ -331,52 +359,8 @@ public class MainActivity extends AppCompatActivity
                         }
                         break;
                     case "showSuggestionList":
-                        final String suggestList = msg.getData().getString("message", null);
-                        try {
-                            JSONArray suggestList_ = new JSONArray(suggestList);
-                            JSONArray suggestListArray = (JSONArray) suggestList_.get(1);
-                            ArrayList<String> suggestions = new ArrayList<>();
-                            for (int i = 0; i < 10; i++) {
-                                String suggestion = suggestListArray.get(i).toString();
-                                if (null != suggestion) {
-                                    suggestions.add(suggestion);
-                                }
-                            }
-                            String[] columnNames = {"_id", "suggestion"};
-                            MatrixCursor cursor = new MatrixCursor(columnNames);
-                            String[] temp = new String[2];
-                            int id = 0;
-                            for (String item : suggestions) {
-                                if (item != null) {
-                                    temp[0] = Integer.toString(id++);
-                                    temp[1] = item;
-                                    cursor.addRow(temp);
-                                }
-                            }
-                            CursorAdapter cursorAdapter = new CursorAdapter(getApplicationContext(), cursor, false) {
-                                @Override
-                                public View newView(Context context, Cursor cursor, ViewGroup parent) {
-                                    return LayoutInflater.from(context).inflate(R.layout.component_search_suggestion_list_item, parent, false);
-                                }
-
-                                @Override
-                                public void bindView(View view, Context context, Cursor cursor) {
-                                    final Button suggest = (Button) view.findViewById(R.id.bt_suggest);
-                                    String body = cursor.getString(cursor.getColumnIndexOrThrow("suggestion"));
-                                    suggest.setText(body);
-                                    suggest.setOnClickListener(new View.OnClickListener() {
-                                        @Override
-                                        public void onClick(View v) {
-                                            searchView.setQuery(suggest.getText(), true);
-                                            searchView.clearFocus();
-                                        }
-                                    });
-                                }
-                            };
-                            searchView.setSuggestionsAdapter(cursorAdapter);
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
+                        String suggestList = msg.getData().getString("message", null);
+                        SuggestAdapter.set(suggestList, getApplicationContext(), searchView);
                         break;
                 }
             }
@@ -394,7 +378,9 @@ public class MainActivity extends AppCompatActivity
             super.onBackPressed();
             return;
         }
-        if (currentUrl.equals("https://m.youtube.com/")) {
+        if (currentUrl.contains(webAccountPage) || currentUrl.contains(webTrendingPage) || currentUrl.contains(webSubscriptionPage)) {
+            webView_youtube_list.loadUrl(webHomePage);
+        } else if (currentUrl.equals(webHomePage)) {
             isExit = true;
             Toast.makeText(this, getString(R.string.press_again_to_exit), Toast.LENGTH_SHORT).show();
             new Timer().schedule(new TimerTask() {
@@ -415,11 +401,67 @@ public class MainActivity extends AppCompatActivity
             case R.id.nav_version:
                 return true;
             case R.id.nav_learn_more:
-                Integer aaa = "123" == "123" ? 1 : 5;
                 break;
+            case R.id.nav_home_page:
+                webView_youtube_list.loadUrl(webHomePage);
+                break;
+            case R.id.nav_trending_page:
+                webView_youtube_list.loadUrl(webTrendingPage);
+                break;
+            case R.id.nav_account_page:
+                webView_youtube_list.loadUrl(webAccountPage);
+                break;
+            case R.id.nav_video_quality:
+                final Integer[] checkedIndex = {0};
+                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                builder.setTitle(getString(R.string.video_quality));
+                builder.setPositiveButton(getString(R.string.done), new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        //set Playing quality
+                        Config.playbackQuality = checkedIndex[0];
+                        sharedPreferences.edit()
+                                .putInt(getString(R.string.videoQuality), Config.playbackQuality).apply();
+                        HandleMessage.set(PlayerService.handler, "setPlaybackQuality", String.valueOf(Config.playbackQuality));
+                        LogUtil.show("New Video Quality => ", Config.getPlaybackQuality());
+                    }
+                });
+                String[] items = {"Auto", "1080p", "720p", "480p", "360p", "240p", "144p"};
+                builder.setSingleChoiceItems(items, Config.playbackQuality, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int ith) {
+                        checkedIndex[0] = ith;
+                    }
+                });
+                AlertDialog dialog = builder.create();
+                dialog.show();
+                break;
+            default:
+                Toast.makeText(this, getString(R.string.unStart), Toast.LENGTH_SHORT).show();
+
         }
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+    private void checkAppVersion() {
+        new AppUpdater(this)
+                .setUpdateFrom(UpdateFrom.JSON)
+                .setUpdateJSON(appVersionUrl)
+                .setTitleOnUpdateAvailable(getString(R.string.version_available))
+//                .setContentOnUpdateAvailable("Check out the latest version available of my app!")
+//                .setTitleOnUpdateNotAvailable("Update not available")
+//                .setContentOnUpdateNotAvailable("No update available. Check for updates again later!")
+                .setButtonUpdate(getString(R.string.update_now))
+//                .setButtonUpdateClickListener(...)
+                .setButtonDismiss(getString(R.string.later))
+//                .setButtonDismissClickListener(...)
+                .setButtonDoNotShowAgain(null)
+//                .setButtonDoNotShowAgainClickListener(...)
+//                .setIcon(R.drawable.ic_update) // Notification icon
+                .setCancelable(false)
+                .setDisplay(Display.DIALOG)
+                .showAppUpdated(false)
+                .start();
     }
 }

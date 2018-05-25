@@ -20,6 +20,9 @@
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
 
--dontwarn org.apache.http.**
+#### -- Apache Commons --
+-ignorewarnings
+-dontwarn org.apache.commons.logging.**
+#-keep class * { public private *;}
 -keep class com.turtle.hsun.jumptube.JavaScriptInterface{ *; }
 -keep class android.support.v7.widget.SearchView { *; } #For SearchView
