@@ -23,9 +23,11 @@
     <string name="desktop_not_support">Desktop view unavailable</string>
     <string name="need_permission">You need to grant the permission</string>
     <string name="check_internet">Please check your network</string>
+    <string name="load_error">Load this page failed</string>
     <string name="unStart">This feature has not been started</string>
     <string name="version_available">Latest version available</string>
     <string name="version_available_detail">Would you want to download it?</string>
+    <string name="loading">Loading...</string>
 
     <!--Common-->
     <string name="settings">Settings</string>

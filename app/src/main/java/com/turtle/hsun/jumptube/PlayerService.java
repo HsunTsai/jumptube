@@ -204,7 +204,19 @@ public class PlayerService extends Service implements View.OnClickListener {
         //Player components
         bt_pause_play = (Button) windows_player.findViewById(R.id.bt_pause_play);
         bt_pause_play.setOnClickListener(this);
-        bt_pause_play.setOnTouchListener(new TouchDetectListener());
+        TouchDetect touchDetect = new TouchDetect();
+        touchDetect.setTouchListener(new TouchDetect.TouchListener() {
+            @Override
+            public void onCick() {
+                pausePlay();
+            }
+
+            @Override
+            public void onScale(Boolean isScaleUp) {
+                scaleWindow(isScaleUp);
+            }
+        });
+        bt_pause_play.setOnTouchListener(touchDetect);
         img_youtube = (ImageView) windows_player.findViewById(R.id.img_youtube);
         seekBar_player = (CustomSeekbar) windows_player.findViewById(R.id.seekBar_player);
         seekBar_player.setSeekbarListener(new CustomSeekbar.CustomSeekbarListener() {
@@ -266,6 +278,9 @@ public class PlayerService extends Service implements View.OnClickListener {
                 defaultPlayerHeight = windows_player.getMeasuredHeight();
                 param_player.width = defaultPlayerWidth;
                 param_player.height = defaultPlayerHeight;
+
+                //scale popup window to last time save
+                scaleWindow(null);
             }
         });
 
@@ -315,67 +330,13 @@ public class PlayerService extends Service implements View.OnClickListener {
         });
     }
 
-    public class TouchDetectListener implements View.OnTouchListener {
-        private double distance_ori = 0;
-        private Boolean isWork = false, isScaleAction = false;
-        private Integer CLICK_ACTION_THRESHOLD = 200;
-        private Float initialTouchX = 0f, initialTouchY = 0f;
-
-        @SuppressLint("ClickableViewAccessibility")
-        @Override
-        public boolean onTouch(View view, MotionEvent event) {
-            Integer finger_count = event.getPointerCount();
-            switch (event.getAction()) {
-                case MotionEvent.ACTION_DOWN:
-                    initialTouchX = event.getX();
-                    initialTouchY = event.getY();
-                    break;
-                case MotionEvent.ACTION_UP:
-                    isScaleAction = false;
-                    distance_ori = 0;
-                    if (isClicked(initialTouchX, event.getX(), initialTouchY, event.getY())) {
-                        pausePlay();
-                    }
-                    break;
-                case MotionEvent.ACTION_MOVE:
-                    if (finger_count == 2 && distance_ori == 0) {
-                        distance_ori = Math.sqrt(Math.pow(event.getX(0) -
-                                event.getX(1), 2) + Math.pow(event.getY(0) - event.getY(1), 2));
-                    }
-                    if (distance_ori == 0) break;
-                    if (finger_count == 1) {
-                        return true;
-                    } else if (finger_count == 2) {
-                        float finger1_x = event.getX(0),
-                                finger1_y = event.getY(0),
-                                finger2_x = event.getX(1),
-                                finger2_y = event.getY(1);
-
-                        final double distanceGap = Math.sqrt(Math.pow(finger1_x - finger2_x, 2) + Math.pow(finger1_y - finger2_y, 2)) - distance_ori;
-                        if (Math.abs(distanceGap) > 50 && !isScaleAction) {
-                            isScaleAction = true;
-                            scaleWindow(distanceGap > 0);
-                        }
-                    }
-                    break;
-            }
-            return true;
-        }
-
-        private boolean isClicked(float startX, float endX, float startY, float endY) {
-            float differenceX = Math.abs(startX - endX);
-            float differenceY = Math.abs(startY - endY);
-            if (differenceX >= 5 || differenceY >= 5) {
-                return false;
-            }
-            return true;
-        }
-    }
-
     private void scaleWindow(Boolean isScaleUp) {
+        //when isScaleUp == null view update scale last time (sharedphference)
         int partScrnWidth = scrnWidth / 6, newWindowsScaleType;
         float paramPlayerProportion = (float) defaultPlayerHeight / (float) defaultPlayerWidth;
-        if (isScaleUp) {
+        if (null == isScaleUp) {
+            newWindowsScaleType = Config.sharedPreferences.getInt("windowsScaleType", 6);
+        } else if (isScaleUp) {
             newWindowsScaleType = Config.windowsScaleType + 1;
         } else {
             newWindowsScaleType = Config.windowsScaleType - 1;
@@ -388,6 +349,7 @@ public class PlayerService extends Service implements View.OnClickListener {
             customImageHeader.setPlayerSize(param_player.width, param_player.height);
             HandleMessage.set(handler, "updatePlayerWindow");
             Config.windowsScaleType = newWindowsScaleType;
+            Config.sharedPreferences.edit().putInt("windowsScaleType", Config.windowsScaleType).apply();
         }
     }
 

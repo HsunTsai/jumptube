@@ -16,6 +16,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.StrictMode;
 import android.preference.PreferenceManager;
+import android.support.design.widget.Snackbar;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.SearchView;
 import android.util.Log;
@@ -30,6 +31,7 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.ViewStub;
+import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebResourceResponse;
 import android.webkit.WebView;
@@ -272,26 +274,34 @@ public class MainActivity extends AppCompatActivity
         }
 
         @Override
+        public void onReceivedError(WebView view, WebResourceRequest request,
+                                    WebResourceError error) {
+            super.onReceivedError(view, request, error);
+            Snackbar.make(layout, getString(R.string.load_error), Snackbar.LENGTH_SHORT).show();
+        }
+
+        @Override
         public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 if (String.valueOf(request.getUrl()).contains("http://m.youtube.com/watch?") ||
                         String.valueOf(request.getUrl()).contains("https://m.youtube.com/watch?")) {
-                    LogUtil.show("loading URL => ", String.valueOf(request.getUrl()));
-                    String url = String.valueOf(request.getUrl());
-                    Uri uri = Uri.parse(url);
-                    videoID = uri.getQueryParameter("v");
-                    playListID = uri.getQueryParameter("list");
-
-                    if (null == playListID) {
-                        //this url is single video
-                        //do nothing
-                        LogUtil.show("Playing Single Video ID => ", videoID);
-                    } else {
-                        //this url is play list
-                        Config.linkType = 1;
-                        LogUtil.show("Playing Video List ID => ", playListID);
+                    if (Internet.isAvailable(activity)) {
+                        LogUtil.show("loading URL => ", String.valueOf(request.getUrl()));
+                        String url = String.valueOf(request.getUrl());
+                        Uri uri = Uri.parse(url);
+                        videoID = uri.getQueryParameter("v");
+                        playListID = uri.getQueryParameter("list");
+                        if (null == playListID) {
+                            //this url is single video
+                            //do nothing
+                            LogUtil.show("Playing Single Video ID => ", videoID);
+                        } else {
+                            //this url is play list
+                            Config.linkType = 1;
+                            LogUtil.show("Playing Video List ID => ", playListID);
+                        }
+                        HandleMessage.set(handler, "startService", playListID);
                     }
-                    HandleMessage.set(handler, "startService", playListID);
                 }
             }
             return super.shouldInterceptRequest(view, request);
@@ -335,6 +345,7 @@ public class MainActivity extends AppCompatActivity
                         break;
                     case "startService":
                         String playListID = msg.getData().getString("message", null);
+                        webView_youtube_list.stopLoading();
                         webView_youtube_list.loadUrl(currentUrl);
                         if (Service.isRunning(activity, PlayerService.class)) {
                             LogUtil.show("Service => ", "Already Running!");
@@ -371,6 +382,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onBackPressed() {
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        searchAutoComplete.dismissDropDown();
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
             return;

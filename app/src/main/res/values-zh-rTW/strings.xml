@@ -24,9 +24,11 @@
     <string name="desktop_not_support">桌面功能尚未支援</string>
     <string name="need_permission">您需要同意此權限才能開啟視窗</string>
     <string name="check_internet">請檢查您的網路</string>
+    <string name="load_error">本頁載入失敗</string>
     <string name="unStart">這個功能尚未啟動唷</string>
     <string name="version_available">可取得新的版本</string>
     <string name="version_available_detail">是否要更新您的App呢?</string>
+    <string name="loading">前往中...</string>
 
     <!--Common-->
     <string name="settings">設定</string>
