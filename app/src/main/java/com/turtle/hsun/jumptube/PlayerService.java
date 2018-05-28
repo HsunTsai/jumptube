@@ -657,12 +657,12 @@ public class PlayerService extends Service implements View.OnClickListener {
                     //緩存中
                     case "playStatus_buffering":
                         String quality = Config.getPlaybackQuality();
-                        webPlayer.loadScript(JavaScript.resetPlaybackQuality(quality));
+//                        webPlayer.loadScript(JavaScript.resetPlaybackQuality(quality));
                         break;
                     case "setPlaybackQuality":
-//                        Integer qualityIndex = Integer.parseInt(msg.getData().getString("message", "0"));
-//                        String str_quality = Config.getPlaybackQuality(qualityIndex);
-                        webPlayer.loadScript(JavaScript.resetPlaybackQuality("144p"));
+                        Integer qualityIndex = Integer.parseInt(msg.getData().getString("message", "0"));
+                        String str_quality = Config.getPlaybackQuality(qualityIndex);
+                        webPlayer.loadScript(JavaScript.resetPlaybackQuality(str_quality));
                         break;
                     case "updatePlayerWindow":
                         windowManager.updateViewLayout(windows_player, param_player);

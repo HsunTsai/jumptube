@@ -7,7 +7,6 @@ import android.app.SearchManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.Rect;
 import android.net.Uri;
@@ -20,6 +19,7 @@ import android.preference.PreferenceManager;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.SearchView;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -34,8 +34,10 @@ import android.webkit.WebResourceRequest;
 import android.webkit.WebResourceResponse;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.AdapterView;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.android.volley.Request;
@@ -49,6 +51,7 @@ import com.github.javiersantos.appupdater.enums.Display;
 import com.github.javiersantos.appupdater.enums.UpdateFrom;
 import com.turtle.hsun.jumptube.Config.Config;
 import com.turtle.hsun.jumptube.Custom.Components.CustomSwipeRefresh;
+import com.turtle.hsun.jumptube.Custom.Utils.NetworkErrorHandler;
 import com.turtle.hsun.jumptube.Custom.Utils.SuggestAdapter;
 import com.turtle.hsun.jumptube.PlayerService;
 import com.turtle.hsun.jumptube.R;
@@ -79,6 +82,7 @@ public class MainActivity extends AppCompatActivity
 
     //Component
     private Activity activity;
+    private LinearLayout layout;
     private WebView webView_youtube_list;
     private Button bt_retry_connect, bt_settings, bt_exit_app;
     private SearchView searchView;
@@ -89,7 +93,7 @@ public class MainActivity extends AppCompatActivity
     //Parameter
     private RequestQueue queue;
     private String currentUrl, videoID, playListID, searchHistory = "[]";
-    private Boolean isExit = false;
+    private Boolean isExit = false, canSearch = true;
     private Handler handler;
 
     @Override
@@ -103,101 +107,12 @@ public class MainActivity extends AppCompatActivity
         //init playing quality
         Config.playbackQuality = sharedPreferences.getInt(getString(R.string.videoQuality), 0);
         queue = Volley.newRequestQueue(this);
+        layout = (LinearLayout) findViewById(R.id.layout);
         Handler();
         initView();
 
         //check app version
         checkAppVersion();
-    }
-
-    @SuppressLint("RestrictedApi")
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
-        searchView = (SearchView) menu.findItem(R.id.action_search).getActionView();
-        if (searchView != null) {
-            searchView.setSearchableInfo(
-                    searchManager.getSearchableInfo(getComponentName()));
-            searchView.setOnQueryTextListener(this);
-
-            //searchAutoComplete default hold query with 2 words,
-            //if we want to query when keyword length equal one word, we should setThreshold
-            searchAutoComplete = (SearchView.SearchAutoComplete) searchView.findViewById(R.id.search_src_text);
-            searchAutoComplete.setThreshold(0);
-            searchHistory = sharedPreferences.getString("searchHistory", "[]");
-            HandleMessage.set(handler, "showSuggestionList", "[\"歷史資料\"," + searchHistory + "]");
-
-            searchView.setOnQueryTextFocusChangeListener(new View.OnFocusChangeListener() {
-                @Override
-                public void onFocusChange(View v, boolean hasFocus) {
-                    searchAutoComplete.showDropDown();
-                }
-            });
-        }
-        // get AutoCompleteTextView from SearchView
-        final AutoCompleteTextView searchEditText = (AutoCompleteTextView) searchView.findViewById(R.id.search_src_text);
-        final View dropDownAnchor = searchView.findViewById(searchEditText.getDropDownAnchor());
-        if (dropDownAnchor != null) {
-            dropDownAnchor.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
-                @Override
-                public void onLayoutChange(View v, int left, int top, int right, int bottom,
-                                           int oldLeft, int oldTop, int oldRight, int oldBottom) {
-                    int point[] = new int[2];
-                    dropDownAnchor.getLocationOnScreen(point);
-                    Rect screenSize = new Rect();
-                    getWindowManager().getDefaultDisplay().getRectSize(screenSize);
-                    int screenWidth = screenSize.width();
-                    searchEditText.setDropDownWidth(screenWidth);
-                }
-            });
-        }
-        return true;
-    }
-
-    @Override
-    public boolean onQueryTextSubmit(String query) {
-        webView_youtube_list.loadUrl("http://m.youtube.com/results?q=" + query);
-        searchView.clearFocus();
-        //紀錄搜尋內容
-        try {
-            JSONArray searchHistoryArray = new JSONArray(searchHistory);
-            for (int i = searchHistoryArray.length() - 1; i > -1; --i) {
-                if (searchHistoryArray.getString(i).equals(query)) searchHistoryArray.remove(i);
-            }
-            if (searchHistoryArray.length() > 10) searchHistoryArray.remove(10);
-            for (int i = searchHistoryArray.length() - 1; i > -1; --i) {
-                searchHistoryArray.put((i + 1), searchHistoryArray.getString(i));
-            }
-            searchHistoryArray.put(0, query);
-            searchHistory = searchHistoryArray.toString();
-            sharedPreferences.edit().putString("searchHistory", searchHistory).apply();
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        return true;
-    }
-
-    @Override
-    public boolean onQueryTextChange(String keyword) {
-        if (keyword.length() > 0) {
-            StringRequest getSuggestArray = new StringRequest(Request.Method.GET, youtubeSuggestURL + keyword,
-                    new Response.Listener<String>() {
-                        @Override
-                        public void onResponse(String response) {
-                            HandleMessage.set(handler, "showSuggestionList", Decode.unicodeToUtf8(response));
-                        }
-                    }, new Response.ErrorListener() {
-                @Override
-                public void onErrorResponse(VolleyError volleyError) {
-                    Log.e("responseresponse", volleyError.getMessage());
-                }
-            });
-            queue.add(getSuggestArray);
-        } else {
-            HandleMessage.set(handler, "showSuggestionList", "[\"歷史資料\"," + searchHistory + "]");
-        }
-        return true;
     }
 
     private void initView() {
@@ -245,6 +160,91 @@ public class MainActivity extends AppCompatActivity
             bt_settings.setOnClickListener(this);
             bt_exit_app.setOnClickListener(this);
         }
+    }
+
+    @SuppressLint("RestrictedApi")
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
+        searchView = (SearchView) menu.findItem(R.id.action_search).getActionView();
+        if (searchView != null) {
+            searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
+            searchView.setOnQueryTextListener(this);
+
+            //searchAutoComplete default hold query with 2 words,
+            //if we want to query when keyword length equal one word, we should setThreshold
+            searchAutoComplete = (SearchView.SearchAutoComplete) searchView.findViewById(R.id.search_src_text);
+            searchAutoComplete.setThreshold(0);
+            searchHistory = sharedPreferences.getString("searchHistory", "[]");
+            HandleMessage.set(handler, "showSuggestionList", "[\"歷史資料\"," + searchHistory + "]");
+        }
+        // get AutoCompleteTextView from SearchView
+        final AutoCompleteTextView searchEditText = (AutoCompleteTextView) searchView.findViewById(R.id.search_src_text);
+        final View dropDownAnchor = searchView.findViewById(searchEditText.getDropDownAnchor());
+        if (dropDownAnchor != null) {
+            dropDownAnchor.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
+                @Override
+                public void onLayoutChange(View v, int left, int top, int right, int bottom,
+                                           int oldLeft, int oldTop, int oldRight, int oldBottom) {
+                    int point[] = new int[2];
+                    dropDownAnchor.getLocationOnScreen(point);
+                    Rect screenSize = new Rect();
+                    getWindowManager().getDefaultDisplay().getRectSize(screenSize);
+                    int screenWidth = screenSize.width();
+                    searchEditText.setDropDownWidth(screenWidth);
+                }
+            });
+        }
+        return true;
+    }
+
+    @Override
+    public boolean onQueryTextChange(final String keyword) {
+        if (keyword.length() > 0) {
+            StringRequest getSuggestArray = new StringRequest(Request.Method.GET, youtubeSuggestURL + keyword,
+                    new Response.Listener<String>() {
+                        @Override
+                        public void onResponse(String response) {
+                            HandleMessage.set(handler, "showSuggestionList", Decode.unicodeToUtf8(response));
+                        }
+                    }, NetworkErrorHandler.Listener(layout));
+            queue.add(getSuggestArray);
+        } else {
+            if (searchHistory.length() > 4) {
+                HandleMessage.set(handler, "showSuggestionList", "[\"歷史資料\"," + searchHistory + "]");
+            } else {
+                searchAutoComplete.dismissDropDown();
+            }
+        }
+        return true;
+    }
+
+    @Override
+    public boolean onQueryTextSubmit(String query) {
+        if (Internet.isAvailable(activity)) {
+            webView_youtube_list.loadUrl("http://m.youtube.com/results?q=" + query);
+            searchView.clearFocus();
+            //紀錄搜尋內容
+            try {
+                JSONArray searchHistoryArray = new JSONArray(searchHistory);
+                for (int i = searchHistoryArray.length() - 1; i > -1; --i) {
+                    if (searchHistoryArray.getString(i).equals(query)) searchHistoryArray.remove(i);
+                }
+                if (searchHistoryArray.length() > 5) searchHistoryArray.remove(5);
+                for (int i = searchHistoryArray.length() - 1; i > -1; --i) {
+                    searchHistoryArray.put((i + 1), searchHistoryArray.getString(i));
+                }
+                searchHistoryArray.put(0, query);
+                searchHistory = searchHistoryArray.toString();
+                sharedPreferences.edit().putString("searchHistory", searchHistory).apply();
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        } else {
+            activity.recreate();
+        }
+        return true;
     }
 
     private class webViewClient extends WebViewClient {
@@ -361,6 +361,7 @@ public class MainActivity extends AppCompatActivity
                     case "showSuggestionList":
                         String suggestList = msg.getData().getString("message", null);
                         SuggestAdapter.set(suggestList, getApplicationContext(), searchView);
+                        searchAutoComplete.showDropDown();
                         break;
                 }
             }

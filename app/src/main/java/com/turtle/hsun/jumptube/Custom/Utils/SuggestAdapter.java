@@ -31,7 +31,7 @@ public class SuggestAdapter {
                 if (null != suggestion) {
                     suggestions.add(suggestion);
                 }
-                if (i == 10) break; //limit = 10
+                if (i == 5) break; //limit = 5
             }
             String[] columnNames = {"_id", "suggestion"};
             MatrixCursor cursor = new MatrixCursor(columnNames);
