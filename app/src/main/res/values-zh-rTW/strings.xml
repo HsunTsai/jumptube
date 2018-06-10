@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">JumpTube</string>
-    <string name="app_version">版本 1.0.1</string>
+    <string name="app_version">版本 1.0.5</string>
 
     <string name="navigation_drawer_open">已開啟側欄選單</string>
     <string name="navigation_drawer_close">已關閉側欄選單</string>

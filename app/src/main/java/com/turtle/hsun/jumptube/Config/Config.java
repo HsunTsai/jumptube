@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 public class Config {
     public static Boolean develop_mode = false;
     public static SharedPreferences sharedPreferences;
+    public static String user_id = "";
 
     //For Result Activity
     public static int OVERLAY_PERMISSION_REQ_CODE = 12345,

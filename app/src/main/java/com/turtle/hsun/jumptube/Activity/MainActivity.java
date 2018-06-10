@@ -20,7 +20,6 @@ import android.support.design.widget.Snackbar;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.SearchView;
 import android.util.Log;
-import android.view.MotionEvent;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -36,7 +35,6 @@ import android.webkit.WebResourceRequest;
 import android.webkit.WebResourceResponse;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.widget.AdapterView;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -45,12 +43,13 @@ import android.widget.Toast;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
-import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.github.javiersantos.appupdater.AppUpdater;
 import com.github.javiersantos.appupdater.enums.Display;
 import com.github.javiersantos.appupdater.enums.UpdateFrom;
+import com.google.firebase.iid.FirebaseInstanceId;
+import com.turtle.hsun.jumptube.Config.API;
 import com.turtle.hsun.jumptube.Config.Config;
 import com.turtle.hsun.jumptube.Custom.Components.CustomSwipeRefresh;
 import com.turtle.hsun.jumptube.Custom.Utils.NetworkErrorHandler;
@@ -71,13 +70,14 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import static com.turtle.hsun.jumptube.Config.Config.OVERLAY_PERMISSION_REQ_CODE;
+import static com.turtle.hsun.jumptube.Config.Config.user_id;
 import static com.turtle.hsun.jumptube.Config.Config.webAccountPage;
 import static com.turtle.hsun.jumptube.Config.Config.webHomePage;
 import static com.turtle.hsun.jumptube.Config.Config.webSubscriptionPage;
 import static com.turtle.hsun.jumptube.Config.Config.webTrendingPage;
 import static com.turtle.hsun.jumptube.Config.Config.sharedPreferences;
 import static com.turtle.hsun.jumptube.Config.Config.youtubeSuggestURL;
-import static com.turtle.hsun.jumptube.Config.ServerDomain.appVersionUrl;
+import static com.turtle.hsun.jumptube.Config.APIConfig.appVersionUrl;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, SearchView.OnQueryTextListener, View.OnClickListener, SwipeRefreshLayout.OnRefreshListener {
@@ -108,10 +108,21 @@ public class MainActivity extends AppCompatActivity
         activity = this;
         //init playing quality
         Config.playbackQuality = sharedPreferences.getInt(getString(R.string.videoQuality), 0);
+        user_id = sharedPreferences.getString("user_id", "");
         queue = Volley.newRequestQueue(this);
         layout = (LinearLayout) findViewById(R.id.layout);
         Handler();
         initView();
+
+        //chech user_id, if not registered yet, register to my server
+        if (Config.user_id.equals("")) {
+            API.REGISTER_USER(queue, this, sharedPreferences);
+        } else {
+            String push_token = FirebaseInstanceId.getInstance().getToken();
+            if (null != push_token)
+                API.REGISTER_PUSH_TOKEN(queue, user_id, push_token);
+        }
+        Log.e("user_id", user_id);
 
         //check app version
         checkAppVersion();
@@ -243,6 +254,7 @@ public class MainActivity extends AppCompatActivity
             } catch (JSONException e) {
                 e.printStackTrace();
             }
+            API.USER_LOG_KEYWORD(queue, query);
         } else {
             activity.recreate();
         }
