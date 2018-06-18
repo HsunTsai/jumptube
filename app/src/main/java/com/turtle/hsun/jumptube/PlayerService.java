@@ -16,6 +16,7 @@ import android.os.Message;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
+import android.util.Log;
 import android.view.Display;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -74,7 +75,7 @@ public class PlayerService extends Service implements View.OnClickListener {
 
     private int scrnWidth, scrnHeight, defaultPlayerWidth, defaultPlayerHeight, playerHeadSize, xAtHiding, yAtHiding,
             xOnAppear, yOnAppear = 0, playerAsideRatio = 7, currentTime = 0;
-    public static int OVER_LAPPING_HEIGHT = 40;
+    public static int OVER_LAPPING_HEIGHT = 0;
 
     @Override
     public void onCreate() {
@@ -168,8 +169,8 @@ public class PlayerService extends Service implements View.OnClickListener {
         scrnHeight = size.y;
 
         //Service Head Params
-        param_service = ServicePlayerLayoutParams.init(WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowManager.LayoutParams.WRAP_CONTENT);
+        playerHeadSize = sharedPreferences.getInt("stickerSize", 150);
+        param_service = ServicePlayerLayoutParams.init(playerHeadSize, playerHeadSize);
 
         //Player View Params
         Double playerHeight = new Double(scrnWidth / 1.49);
@@ -252,7 +253,7 @@ public class PlayerService extends Service implements View.OnClickListener {
         }
         param_player.gravity = Gravity.TOP | Gravity.LEFT;
         param_player.x = 0;
-        param_player.y = playerHeadSize - OVER_LAPPING_HEIGHT;
+        //param_player.y = playerHeadSize - OVER_LAPPING_HEIGHT;
         windowManager.addView(windows_player, param_player);
 
         //大頭貼 畫面參數監聽註冊
@@ -633,6 +634,16 @@ public class PlayerService extends Service implements View.OnClickListener {
                             windowManager.updateViewLayout(windows_player, param_player);
                         Config.windowsScaleType = windowsScaleType;
                         Config.sharedPreferences.edit().putInt("windowsScaleType", Config.windowsScaleType).apply();
+                        break;
+                    case "setStickerSize":
+                        playerHeadSize = Integer.parseInt(msg.getData().getString("message", "150"));
+                        param_service.width = playerHeadSize;
+                        param_service.height = playerHeadSize;
+                        param_player.y = param_service.y + playerHeadSize - OVER_LAPPING_HEIGHT;
+                        customImageHeader.setPlayerHeadSize(playerHeadSize);
+                        windowManager.updateViewLayout(windows_head, param_service);
+                        if (isVideoShow)
+                            windowManager.updateViewLayout(windows_player, param_player);
                         break;
                     //定時更新播放時間
                     case "startCurrentTimeUpdate":

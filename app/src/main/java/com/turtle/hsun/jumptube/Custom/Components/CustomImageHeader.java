@@ -1,5 +1,6 @@
 package com.turtle.hsun.jumptube.Custom.Components;
 
+import android.app.Activity;
 import android.app.Service;
 import android.content.Intent;
 import android.os.Handler;
@@ -15,6 +16,7 @@ import android.widget.RelativeLayout;
 import com.turtle.hsun.jumptube.PlayerService;
 import com.turtle.hsun.jumptube.R;
 import com.turtle.hsun.jumptube.Utils.HandleMessage;
+import com.turtle.hsun.jumptube.Utils.UITransform;
 
 import static com.turtle.hsun.jumptube.PlayerService.OVER_LAPPING_HEIGHT;
 
@@ -84,6 +86,11 @@ public class CustomImageHeader implements View.OnTouchListener {
         this.img_close = (ImageView) windows_close.findViewById(R.id.img_close);
     }
 
+    public CustomImageHeader setPlayerHeadSize(Integer playerHeadSize) {
+        this.playerHeadSize = playerHeadSize;
+        return this;
+    }
+
     public interface ImageHeaderActionListener {
         public void onPlayerShow(Boolean needShowUp);
 
@@ -98,8 +105,9 @@ public class CustomImageHeader implements View.OnTouchListener {
         this.isEntireWidth = isEntireWidth;
     }
 
-    public void setPlayerVisible(Boolean isPlayerVisible) {
+    public CustomImageHeader setPlayerVisible(Boolean isPlayerVisible) {
         this.isPlayerVisible = isPlayerVisible;
+        return this;
     }
 
     public void setPlayerSize(Integer playerWidth, Integer playerHeight) {
@@ -212,10 +220,12 @@ public class CustomImageHeader implements View.OnTouchListener {
                     Boolean isInsideClose = updateIsInsideClose(params.x, params.y, t);
                     //判斷是否進入close image內 是的話靠近去 否的話回復原位
                     if (isInsideClose) {
-                        params.x = t[0] + 46;
-                        params.y = t[1] - getStatusBarHeight() + 50;
-                        params.width = closeImageLayoutSize;
-                        params.height = closeImageLayoutSize;
+                        int[] imgClosePosition = new int[2];
+                        img_close.getLocationOnScreen(imgClosePosition);
+                        params.x = imgClosePosition[0];
+                        params.y = imgClosePosition[1] - getStatusBarHeight() + 3;
+                        params.width = (int) (img_close.getMeasuredWidth() * 1.4);
+                        params.height = (int) (img_close.getMeasuredHeight() * 1.4f);
                         if (isInsideClose != isInsideClosePre) {
                             vibrator.vibrate(50);
                             img_close.animate().scaleX(1.4f).scaleY(1.4f).setDuration(100).start();

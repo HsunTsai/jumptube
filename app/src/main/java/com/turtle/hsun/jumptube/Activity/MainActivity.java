@@ -465,7 +465,7 @@ public class MainActivity extends AppCompatActivity
             case R.id.nav_learn_more:
                 break;
             case R.id.nav_sticker_size:
-                //調整頭貼大小
+                Dialog.stickerSize(this);
                 break;
             case R.id.nav_home_page:
                 webView_youtube_list.loadUrl(webHomePage);

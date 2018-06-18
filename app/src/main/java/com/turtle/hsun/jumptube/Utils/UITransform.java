@@ -1,6 +1,7 @@
 package com.turtle.hsun.jumptube.Utils;
 
 import android.app.Activity;
+import android.content.Context;
 
 public class UITransform {
     public static int dp2px(Activity activity, float dp) {
