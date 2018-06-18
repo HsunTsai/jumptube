@@ -64,7 +64,7 @@ public class PlayerService extends Service implements View.OnClickListener {
     public static Handler handler;
     private String videoID, playListID;
     private Boolean isVideoPlaying = true, isReplayVideo = false, isReplayPlaylist = false,
-            isPlayListLoop = false, nextVid = false, isEntireWidth = false; //Next Video to check whether ic_next video is played or not
+            isPlayListLoop = false, nextVid = false, isEntireWidth = false, isVideoShow = true; //Next Video to check whether ic_next video is played or not
     private WindowManager.LayoutParams windowsHeadParams, windowsCloseParams,
             windowsCloseBackParams, componentPlayerParams,
             param_player, param_service, param_close, param_close_back;
@@ -73,7 +73,7 @@ public class PlayerService extends Service implements View.OnClickListener {
     private Timer updateCurrentTimeTimer;
 
     private int scrnWidth, scrnHeight, defaultPlayerWidth, defaultPlayerHeight, playerHeadSize, xAtHiding, yAtHiding,
-            xOnAppear, yOnAppear = 0, playerAsideRatio = 7;
+            xOnAppear, yOnAppear = 0, playerAsideRatio = 7, currentTime = 0;
     public static int OVER_LAPPING_HEIGHT = 40;
 
     @Override
@@ -335,21 +335,15 @@ public class PlayerService extends Service implements View.OnClickListener {
         int partScrnWidth = scrnWidth / 6, newWindowsScaleType;
         float paramPlayerProportion = (float) defaultPlayerHeight / (float) defaultPlayerWidth;
         if (null == isScaleUp) {
-            newWindowsScaleType = Config.sharedPreferences.getInt("windowsScaleType", 6);
+            newWindowsScaleType = Config.windowsScaleType;
         } else if (isScaleUp) {
             newWindowsScaleType = Config.windowsScaleType + 1;
         } else {
             newWindowsScaleType = Config.windowsScaleType - 1;
         }
         if (newWindowsScaleType >= 3 && newWindowsScaleType <= 6) {
-            //only accept type from 3 to 5
-            param_player.width = partScrnWidth * newWindowsScaleType;
-            param_player.height = Math.round(param_player.width * paramPlayerProportion);
-            //Set player height & width for component
-            customImageHeader.setPlayerSize(param_player.width, param_player.height);
-            HandleMessage.set(handler, "updatePlayerWindow");
-            Config.windowsScaleType = newWindowsScaleType;
-            Config.sharedPreferences.edit().putInt("windowsScaleType", Config.windowsScaleType).apply();
+            //only accept type from 3 to 6
+            HandleMessage.set(PlayerService.handler, "setWindowsScaleType", String.valueOf(newWindowsScaleType));
         }
     }
 
@@ -375,16 +369,16 @@ public class PlayerService extends Service implements View.OnClickListener {
                     isReplayPlaylist = false;
                 } else {
                     LogUtil.show("PlayStatus", "Replay Video");
-                    webPlayer.loadScript(JavaScript.playVideo());
+                    HandleMessage.set(handler, "videoPlay");
                     isReplayVideo = false;
                 }
             } else {
                 LogUtil.show("PlayStatus", "Pause Video");
-                webPlayer.loadScript(JavaScript.pauseVideo());
+                HandleMessage.set(handler, "videoPause");
             }
         } else {
             LogUtil.show("PlayStatus", "Play Video");
-            webPlayer.loadScript(JavaScript.playVideo());
+            HandleMessage.set(handler, "videoPlay");
         }
     }
 
@@ -396,7 +390,7 @@ public class PlayerService extends Service implements View.OnClickListener {
                 break;
             //Handle Full Screen
             case R.id.img_fullscreen:
-                webPlayer.loadScript(JavaScript.pauseVideo());
+                HandleMessage.set(handler, "videoPause");
                 Intent fullScreenIntent = new Intent(context, FullscreenWebPlayer.class);
                 fullScreenIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 //remove Views
@@ -483,6 +477,7 @@ public class PlayerService extends Service implements View.OnClickListener {
         }
         windowManager.updateViewLayout(windows_player, param_player);
         windowManager.updateViewLayout(windows_head, param_service);
+        isVideoShow = true;
     }
 
     private void hidePlayer(Boolean updateHead) {
@@ -499,6 +494,7 @@ public class PlayerService extends Service implements View.OnClickListener {
             param_service.y = yOnAppear;
             windowManager.updateViewLayout(windows_head, param_service);
         }
+        isVideoShow = false;
     }
 
     @SuppressLint("HandlerLeak")
@@ -534,11 +530,12 @@ public class PlayerService extends Service implements View.OnClickListener {
                         windowManager.addView(windows_close, windowsCloseParams);
                         windowManager.addView(windows_close_background, windowsCloseBackParams);
                         windowManager.addView(windows_player, componentPlayerParams);
-                        webPlayer.loadScript(JavaScript.playVideo());
+                        HandleMessage.set(handler, "videoPlay");
                         break;
                     case "startVideo":
                         String video_ID = msg.getData().getString("VIDEO_ID"),
                                 playListID = msg.getData().getString("PLAYLIST_ID");
+                        currentTime = 0;
                         if (playListID == null) {
                             LogUtil.show("start video", video_ID);
                             customNotificationManager.setAuthor(videoID);
@@ -577,7 +574,7 @@ public class PlayerService extends Service implements View.OnClickListener {
                             }
                         } else {
                             if (Config.repeatType > 0) {
-                                webPlayer.loadScript(JavaScript.playVideo());
+                                HandleMessage.set(handler, "videoPlay");
                             } else {
                                 if (Config.finishOnEnd == true) {
                                     stopForeground(true);
@@ -626,8 +623,16 @@ public class PlayerService extends Service implements View.OnClickListener {
                         String str_quality = Config.getPlaybackQuality(qualityIndex);
                         webPlayer.loadScript(JavaScript.resetPlaybackQuality(str_quality));
                         break;
-                    case "updatePlayerWindow":
-                        windowManager.updateViewLayout(windows_player, param_player);
+                    case "setWindowsScaleType":
+                        int partScrnWidth = scrnWidth / 6, windowsScaleType = Integer.parseInt(msg.getData().getString("message", "6"));
+                        float paramPlayerProportion = (float) defaultPlayerHeight / (float) defaultPlayerWidth;
+                        param_player.width = partScrnWidth * windowsScaleType;
+                        param_player.height = Math.round(param_player.width * paramPlayerProportion);
+                        customImageHeader.setPlayerSize(param_player.width, param_player.height);
+                        if (isVideoShow)
+                            windowManager.updateViewLayout(windows_player, param_player);
+                        Config.windowsScaleType = windowsScaleType;
+                        Config.sharedPreferences.edit().putInt("windowsScaleType", Config.windowsScaleType).apply();
                         break;
                     //定時更新播放時間
                     case "startCurrentTimeUpdate":
@@ -644,15 +649,32 @@ public class PlayerService extends Service implements View.OnClickListener {
                     case "setDurationTime":
                         Integer durationTime = Integer.parseInt(msg.getData().getString("message", "0"));
                         seekBar_player.setMax(durationTime);
+                        if (null != FullscreenWebPlayer.seekBar_player)
+                            FullscreenWebPlayer.seekBar_player.setMax(durationTime);
                         break;
                     //設定目前播放進度
                     case "setCurrentTime":
-                        Integer currentTime = Integer.parseInt(msg.getData().getString("message", "0"));
+                        currentTime = Integer.parseInt(msg.getData().getString("message", "0"));
                         seekBar_player.setProgress(currentTime);
+                        if (null != FullscreenWebPlayer.seekBar_player)
+                            FullscreenWebPlayer.seekBar_player.setProgress(currentTime);
                         break;
                     case "imageEntireClick":
                         img_entire_width.performClick();
                         break;
+                    case "videoForward":
+                        webPlayer.loadScript(JavaScript.seekTo(currentTime - 10));
+                        break;
+                    case "videoBackward":
+                        webPlayer.loadScript(JavaScript.seekTo(currentTime + 10));
+                        break;
+                    case "videoPause":
+                        webPlayer.loadScript(JavaScript.pauseVideo());
+                        break;
+                    case "videoPlay":
+                        webPlayer.loadScript(JavaScript.playVideo());
+                        break;
+
                 }
             }
         };
@@ -664,9 +686,9 @@ public class PlayerService extends Service implements View.OnClickListener {
         isVideoPlaying = true;
         Config.linkType = 0;
         if (windows_player != null) {
-            if (FullscreenWebPlayer.active) {
-                FullscreenWebPlayer.activity.onBackPressed();
-            }
+//            if (FullscreenWebPlayer.active) {
+//                FullscreenWebPlayer.activity.onBackPressed();
+//            }
             windowManager.removeView(windows_player);
             windowManager.removeView(windows_head);
             windowManager.removeView(windows_close);

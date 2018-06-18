@@ -29,7 +29,7 @@ public class Config {
     //Playback Quality
     public static int playbackQuality = 0;
 
-    //Float window (Only for 1 ~ 5)
+    //Float window (Only for 3 ~ 6)
     public static int windowsScaleType = 6;
 
     public static String getPlaybackQuality() {

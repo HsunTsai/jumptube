@@ -1,7 +1,68 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:id="@+id/layout_fullscreen"
-    android:orientation="vertical"
-    android:fitsSystemWindows="true"/>
+    android:layout_height="match_parent">
+
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/layout_fullscreen"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical" />
+
+    <LinearLayout
+        android:id="@+id/layout_control"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/bt_forward"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:background="@android:color/transparent" />
+
+                <Button
+                    android:id="@+id/bt_backward"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:background="@android:color/transparent" />
+
+            </LinearLayout>
+
+            <ImageButton
+                android:id="@+id/imgbt_play_pause_video"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerHorizontal="true"
+                android:layout_centerVertical="true"
+                android:background="@android:color/transparent"
+                android:scaleType="center"
+                android:src="@drawable/pause"
+                android:tint="@drawable/bt_white_primary_selector" />
+        </RelativeLayout>
+
+        <com.turtle.hsun.jumptube.Custom.Components.CustomSeekbar
+            android:id="@+id/seekBar_player"
+            android:layout_width="match_parent"
+            android:layout_height="35dp"
+            android:theme="@style/SeekBarColor" />
+    </LinearLayout>
+
+
+</RelativeLayout>
+
+

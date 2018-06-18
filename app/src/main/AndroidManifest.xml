@@ -52,15 +52,10 @@
             android:theme="@style/AppTheme.NoActionBar" />
 
         <activity
-            android:name=".Activity.Settings"
-            android:label="@string/settings"
-            android:theme="@style/AppTheme.NoActionBar" />
-
-        <activity
             android:name=".Activity.FullscreenWebPlayer"
             android:excludeFromRecents="true"
             android:screenOrientation="landscape"
-            android:theme="@android:style/Theme.NoTitleBar.Fullscreen" />
+            android:theme="@style/AppTheme.FullScreen" />
 
         <service
             android:name=".PlayerService"
@@ -69,13 +64,6 @@
         <service android:name=".FirebaseIDService">
             <intent-filter>
                 <action android:name="com.google.firebase.INSTANCE_ID_EVENT" />
-            </intent-filter>
-        </service>
-
-        <service
-            android:name=".FirebaseCloudMessagingService">
-            <intent-filter>
-                <action android:name="com.google.firebase.MESSAGING_EVENT"/>
             </intent-filter>
         </service>
 

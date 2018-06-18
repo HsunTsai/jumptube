@@ -8,6 +8,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.graphics.Rect;
 import android.net.Uri;
 import android.os.Build;
@@ -18,13 +19,13 @@ import android.os.StrictMode;
 import android.preference.PreferenceManager;
 import android.support.design.widget.Snackbar;
 import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.widget.SearchView;
 import android.util.Log;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
@@ -52,6 +53,7 @@ import com.google.firebase.iid.FirebaseInstanceId;
 import com.turtle.hsun.jumptube.Config.API;
 import com.turtle.hsun.jumptube.Config.Config;
 import com.turtle.hsun.jumptube.Custom.Components.CustomSwipeRefresh;
+import com.turtle.hsun.jumptube.Custom.Utils.Dialog;
 import com.turtle.hsun.jumptube.Custom.Utils.NetworkErrorHandler;
 import com.turtle.hsun.jumptube.Custom.Utils.SuggestAdapter;
 import com.turtle.hsun.jumptube.PlayerService;
@@ -60,6 +62,7 @@ import com.turtle.hsun.jumptube.Utils.Decode;
 import com.turtle.hsun.jumptube.Utils.HandleMessage;
 import com.turtle.hsun.jumptube.Utils.Internet;
 import com.turtle.hsun.jumptube.Utils.LogUtil;
+import com.turtle.hsun.jumptube.Utils.MyClipboardManager;
 import com.turtle.hsun.jumptube.Utils.Service;
 import com.turtle.hsun.jumptube.Utils.UITransform;
 
@@ -80,7 +83,8 @@ import static com.turtle.hsun.jumptube.Config.Config.youtubeSuggestURL;
 import static com.turtle.hsun.jumptube.Config.APIConfig.appVersionUrl;
 
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, SearchView.OnQueryTextListener, View.OnClickListener, SwipeRefreshLayout.OnRefreshListener {
+        implements NavigationView.OnNavigationItemSelectedListener, SearchView.OnQueryTextListener,
+        View.OnClickListener, SwipeRefreshLayout.OnRefreshListener {
 
     //Component
     private Activity activity;
@@ -108,6 +112,7 @@ public class MainActivity extends AppCompatActivity
         activity = this;
         //init playing quality
         Config.playbackQuality = sharedPreferences.getInt(getString(R.string.videoQuality), 0);
+        Config.windowsScaleType = Config.sharedPreferences.getInt("windowsScaleType", 6);
         user_id = sharedPreferences.getString("user_id", "");
         queue = Volley.newRequestQueue(this);
         layout = (LinearLayout) findViewById(R.id.layout);
@@ -122,8 +127,7 @@ public class MainActivity extends AppCompatActivity
             if (null != push_token)
                 API.REGISTER_PUSH_TOKEN(queue, user_id, push_token);
         }
-        Log.e("user_id", user_id);
-
+        LogUtil.show("user_id", user_id);
         //check app version
         checkAppVersion();
     }
@@ -131,13 +135,26 @@ public class MainActivity extends AppCompatActivity
     private void initView() {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        drawer.addDrawerListener(toggle);
-        toggle.syncState();
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+        final MenuItem item_video_size = (MenuItem) navigationView.getMenu().findItem(R.id.nav_video_size);
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        drawer.addDrawerListener(new DrawerLayout.SimpleDrawerListener() {
+            @Override
+            public void onDrawerOpened(View drawerView) {
+                super.onDrawerOpened(drawerView);
+                String video_size_string =
+                        Config.windowsScaleType == 6 ? getString(R.string.video_size_full) :
+                                Config.windowsScaleType == 5 ? getString(R.string.video_size_large) :
+                                        Config.windowsScaleType == 4 ? getString(R.string.video_size_medium) :
+                                                getString(R.string.video_size_small);
+                item_video_size.setTitle(getString(R.string.video_size) + "(" + video_size_string + ")");
+            }
+        });
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        toggle.syncState();
+
 
         viewStub = (ViewStub) findViewById(R.id.view_stub);
         if (Internet.isAvailable(activity)) {
@@ -172,6 +189,23 @@ public class MainActivity extends AppCompatActivity
             bt_retry_connect.setOnClickListener(this);
             bt_settings.setOnClickListener(this);
             bt_exit_app.setOnClickListener(this);
+        }
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        //Open video by copy data
+        final String copyData = MyClipboardManager.readFromClipboard(this);
+        if (copyData.contains("youtube.com/watch?")) {
+            final Snackbar snackbar = Snackbar.make(layout, getString(R.string.copy_data_is_youtube), Snackbar.LENGTH_LONG);
+            snackbar.setAction(getString(R.string.open), new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    openJumptube(copyData);
+                    snackbar.dismiss();
+                }
+            }).setActionTextColor(0xFFe62117).show();
         }
     }
 
@@ -297,26 +331,29 @@ public class MainActivity extends AppCompatActivity
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 if (String.valueOf(request.getUrl()).contains("http://m.youtube.com/watch?") ||
                         String.valueOf(request.getUrl()).contains("https://m.youtube.com/watch?")) {
-                    if (Internet.isAvailable(activity)) {
-                        LogUtil.show("loading URL => ", String.valueOf(request.getUrl()));
-                        String url = String.valueOf(request.getUrl());
-                        Uri uri = Uri.parse(url);
-                        videoID = uri.getQueryParameter("v");
-                        playListID = uri.getQueryParameter("list");
-                        if (null == playListID) {
-                            //this url is single video
-                            //do nothing
-                            LogUtil.show("Playing Single Video ID => ", videoID);
-                        } else {
-                            //this url is play list
-                            Config.linkType = 1;
-                            LogUtil.show("Playing Video List ID => ", playListID);
-                        }
-                        HandleMessage.set(handler, "startService", playListID);
-                    }
+                    openJumptube(String.valueOf(request.getUrl()));
                 }
             }
             return super.shouldInterceptRequest(view, request);
+        }
+    }
+
+    private void openJumptube(String requestURL) {
+        if (Internet.isAvailable(activity)) {
+            LogUtil.show("loading URL => ", requestURL);
+            Uri uri = Uri.parse(requestURL);
+            videoID = uri.getQueryParameter("v");
+            playListID = uri.getQueryParameter("list");
+            if (null == playListID) {
+                //this url is single video
+                //do nothing
+                LogUtil.show("Playing Single Video ID => ", videoID);
+            } else {
+                //this url is play list
+                Config.linkType = 1;
+                LogUtil.show("Playing Video List ID => ", playListID);
+            }
+            HandleMessage.set(handler, "startService", playListID);
         }
     }
 
@@ -427,6 +464,9 @@ public class MainActivity extends AppCompatActivity
                 return true;
             case R.id.nav_learn_more:
                 break;
+            case R.id.nav_sticker_size:
+                //調整頭貼大小
+                break;
             case R.id.nav_home_page:
                 webView_youtube_list.loadUrl(webHomePage);
                 break;
@@ -436,29 +476,11 @@ public class MainActivity extends AppCompatActivity
             case R.id.nav_account_page:
                 webView_youtube_list.loadUrl(webAccountPage);
                 break;
+            case R.id.nav_video_size:
+                Dialog.videoSize(this);
+                break;
             case R.id.nav_video_quality:
-                final Integer[] checkedIndex = {0};
-                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-                builder.setTitle(getString(R.string.video_quality));
-                builder.setPositiveButton(getString(R.string.done), new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
-                        //set Playing quality
-                        Config.playbackQuality = checkedIndex[0];
-                        sharedPreferences.edit()
-                                .putInt(getString(R.string.videoQuality), Config.playbackQuality).apply();
-                        HandleMessage.set(PlayerService.handler, "setPlaybackQuality", String.valueOf(Config.playbackQuality));
-                        LogUtil.show("New Video Quality => ", Config.getPlaybackQuality());
-                    }
-                });
-                String[] items = {"Auto", "1080p", "720p", "480p", "360p", "240p", "144p"};
-                builder.setSingleChoiceItems(items, Config.playbackQuality, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int ith) {
-                        checkedIndex[0] = ith;
-                    }
-                });
-                AlertDialog dialog = builder.create();
-                dialog.show();
+                Dialog.videoQuality(this);
                 break;
             default:
                 Toast.makeText(this, getString(R.string.unStart), Toast.LENGTH_SHORT).show();
@@ -478,8 +500,7 @@ public class MainActivity extends AppCompatActivity
 //                .setTitleOnUpdateNotAvailable("Update not available")
 //                .setContentOnUpdateNotAvailable("No update available. Check for updates again later!")
                 .setButtonUpdate(getString(R.string.update_now))
-//                .setButtonUpdateClickListener(...)
-                .setButtonDismiss(getString(R.string.later))
+//                .setButtonDismiss(getString(R.string.later))
 //                .setButtonDismissClickListener(...)
                 .setButtonDoNotShowAgain(null)
 //                .setButtonDoNotShowAgainClickListener(...)
@@ -489,4 +510,6 @@ public class MainActivity extends AppCompatActivity
                 .showAppUpdated(false)
                 .start();
     }
+
+
 }

@@ -44,14 +44,26 @@
     <string name="no">No</string>
     <string name="version">Version</string>
     <string name="forward">Forward</string>
+    <string name="open">Open</string>
     <string name="home">Home Page</string>
     <string name="trending">Tredning Page</string>
     <string name="account">Account Page</string>
     <string name="update_now">Update Now</string>
     <string name="later">Later</string>
+    <string name="video_size_full">Full</string>
+    <string name="video_size_large">Large</string>
+    <string name="video_size_medium">Medium</string>
+    <string name="video_size_small">Small</string>
+    <string name="sticker_size_large">Large</string>
+    <string name="sticker_size_medium">Medium</string>
+    <string name="sticker_size_small">Small</string>
+    <string name="sticker_size_disappear">Disappear</string>
+    <string name="video_forward_10">Video forward 10 seconds</string>
+    <string name="video_backward_10">Video backward 10 seconds</string>
+    <string name="copy_data_is_youtube">Your copy data is Youtube URL.\nWould you wnat to open it by Jumptube?</string>
 
     <!--Settings-->
     <string name="general_settings">General Settings</string>
-    <string name="learn_more">Learn More</string>
+    <string name="learn_more">Developer info</string>
 
 </resources>

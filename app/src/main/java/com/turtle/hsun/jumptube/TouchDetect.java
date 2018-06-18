@@ -1,6 +1,7 @@
 package com.turtle.hsun.jumptube;
 
 import android.annotation.SuppressLint;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -41,6 +42,7 @@ public class TouchDetect implements View.OnTouchListener {
                             finger2_y = event.getY(1);
 
                     final double distanceGap = Math.sqrt(Math.pow(finger1_x - finger2_x, 2) + Math.pow(finger1_y - finger2_y, 2)) - distance_ori;
+//                    Log.e("distanceGap",String.valueOf(distanceGap));
                     if (Math.abs(distanceGap) > 50 && !isScaleAction) {
                         isScaleAction = true;
                         this.listener.onScale(distanceGap > 0);
