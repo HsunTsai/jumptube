@@ -6,8 +6,8 @@ android {
         applicationId "com.turtle.hsun.jumptube"
         minSdkVersion 21
         targetSdkVersion 25
-        versionCode 6
-        versionName "1.0.6"
+        versionCode 7
+        versionName "1.0.7"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
     }

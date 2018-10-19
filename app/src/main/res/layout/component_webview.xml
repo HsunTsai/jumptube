@@ -3,8 +3,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.turtle.hsun.jumptube.Activity.MainActivity"
-    tools:showIn="@layout/activity_main">
+    tools:context="com.turtle.hsun.jumptube.Activity.MainActivity">
+    <!--tools:showIn="@layout/activity_main"-->
 
     <WebView
         android:id="@+id/webView_youtube_list"
@@ -12,5 +12,39 @@
         android:layout_height="match_parent"
         android:layout_marginTop="-50dp" />
 
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_alignParentBottom="true"
+        android:background="@color/colorPrimary"
+        android:orientation="horizontal"
+        android:paddingBottom="10dp"
+        android:paddingTop="10dp">
+
+        <ImageView
+            android:id="@+id/imgbt_home"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:src="@drawable/ic_home"
+            android:tint="@android:color/white" />
+
+        <ImageView
+            android:id="@+id/imgbt_trend"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:src="@drawable/ic_trending"
+            android:tint="@android:color/black" />
+
+        <ImageView
+            android:id="@+id/imgbt_account"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:src="@drawable/ic_account"
+            android:tint="@android:color/black" />
+    </LinearLayout>
 
 </RelativeLayout>

@@ -2,11 +2,14 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="horizontal">
+    android:background="#e62920"
+    android:orientation="horizontal"
+    android:padding="2dp">
 
     <RelativeLayout
         android:layout_width="120dp"
-        android:layout_height="120dp">
+        android:layout_height="120dp"
+        android:background="@android:color/white">
 
         <ProgressBar
             style="?android:attr/progressBarStyle"
@@ -30,7 +33,6 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_weight="1"
-        android:background="#e62920"
         android:orientation="vertical">
 
         <LinearLayout
@@ -70,6 +72,7 @@
             android:gravity="center_vertical"
             android:paddingLeft="10dp"
             android:paddingRight="10dp"
+            android:singleLine="true"
             android:text="Loading Author"
             android:textColor="@android:color/white"
             android:textSize="12dp" />

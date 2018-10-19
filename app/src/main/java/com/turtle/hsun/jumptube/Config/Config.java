@@ -20,11 +20,8 @@ public class Config {
     //Repeat
     //if repeatType = 0  --> no repeatType
     //if repeatType = 1  --> repeatType complete
-    //if repeatType = 2  --> repeatType single
+    //if repeatType = 2  --> repeatType single(Remove)
     public static int repeatType = 0;
-
-    //Finish service on end video
-    public static boolean finishOnEnd = false;
 
     //Playback Quality
     public static int playbackQuality = 0;

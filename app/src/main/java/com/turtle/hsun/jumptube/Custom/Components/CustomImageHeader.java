@@ -1,8 +1,8 @@
 package com.turtle.hsun.jumptube.Custom.Components;
 
-import android.app.Activity;
 import android.app.Service;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.os.Handler;
 import android.os.Vibrator;
 import android.view.MotionEvent;
@@ -16,7 +16,7 @@ import android.widget.RelativeLayout;
 import com.turtle.hsun.jumptube.PlayerService;
 import com.turtle.hsun.jumptube.R;
 import com.turtle.hsun.jumptube.Utils.HandleMessage;
-import com.turtle.hsun.jumptube.Utils.UITransform;
+import com.turtle.hsun.jumptube.Utils.LogUtil;
 
 import static com.turtle.hsun.jumptube.PlayerService.OVER_LAPPING_HEIGHT;
 
@@ -95,6 +95,8 @@ public class CustomImageHeader implements View.OnTouchListener {
         public void onPlayerShow(Boolean needShowUp);
 
         public void onPlayerHide();
+
+        public void onScreenChange(int scrnHeight, int scrnWidth);
     }
 
     public void setOnActionListener(ImageHeaderActionListener listener) {
@@ -281,5 +283,27 @@ public class CustomImageHeader implements View.OnTouchListener {
     private int getStatusBarHeight() {
         int statusBarHeight = (int) Math.ceil(25 * playerService.getApplicationContext().getResources().getDisplayMetrics().density);
         return statusBarHeight;
+    }
+
+    public void changeScreenDirection(Configuration configuration) {
+        int scrnWidthTemp = scrnWidth, scrnHeightTemp = scrnHeight;
+        switch (configuration.orientation) {
+            case Configuration.ORIENTATION_LANDSCAPE:
+                if (scrnWidth < scrnHeight) {
+                    scrnWidth = scrnHeightTemp;
+                    scrnHeight = scrnWidthTemp;
+                }
+                break;
+
+            case Configuration.ORIENTATION_PORTRAIT:
+                if (scrnWidth > scrnHeight) {
+                    scrnWidth = scrnHeightTemp;
+                    scrnHeight = scrnWidthTemp;
+                }
+                break;
+        }
+        listener.onScreenChange(scrnHeight, scrnWidth);
+        LogUtil.show("Screen Width => ", String.valueOf(scrnWidth));
+        LogUtil.show("Screen Height => ", String.valueOf(scrnHeight));
     }
 }

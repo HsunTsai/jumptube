@@ -32,14 +32,14 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
-                    android:background="@android:color/transparent" />
+                    android:background="?attr/selectableItemBackground" />
 
                 <Button
                     android:id="@+id/bt_backward"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
-                    android:background="@android:color/transparent" />
+                    android:background="?attr/selectableItemBackground" />
 
             </LinearLayout>
 

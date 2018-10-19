@@ -28,6 +28,7 @@
     <string name="version_available">Latest version available</string>
     <string name="version_available_detail">Would you want to download it?</string>
     <string name="loading">Loading...</string>
+    <string name="video_open">Video is staring...</string>
 
     <!--Common-->
     <string name="settings">Settings</string>

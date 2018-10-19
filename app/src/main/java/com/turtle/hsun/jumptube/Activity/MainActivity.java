@@ -11,6 +11,7 @@ import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Rect;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -18,6 +19,7 @@ import android.os.Message;
 import android.os.StrictMode;
 import android.preference.PreferenceManager;
 import android.support.design.widget.Snackbar;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.widget.SearchView;
@@ -38,6 +40,7 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
@@ -99,7 +102,7 @@ public class MainActivity extends AppCompatActivity
     //Parameter
     private RequestQueue queue;
     private String currentUrl, videoID, playListID, searchHistory = "[]";
-    private Boolean isExit = false, canSearch = true;
+    private Boolean isExit = false;
     private Handler handler;
 
     @Override
@@ -179,6 +182,9 @@ public class MainActivity extends AppCompatActivity
             webView_youtube_list.setWebViewClient(new webViewClient());
             webView_youtube_list.canGoBack();
             webView_youtube_list.loadUrl(webHomePage);
+            findViewById(R.id.imgbt_home).setOnClickListener(this);
+            findViewById(R.id.imgbt_trend).setOnClickListener(this);
+            findViewById(R.id.imgbt_account).setOnClickListener(this);
         } else {
             viewStub.setLayoutResource(R.layout.component_no_internet);
             viewStub.inflate();
@@ -197,7 +203,7 @@ public class MainActivity extends AppCompatActivity
         super.onStart();
         //Open video by copy data
         final String copyData = MyClipboardManager.readFromClipboard(this);
-        if (copyData.contains("youtube.com/watch?")) {
+        if (copyData.contains("youtube.com/watch?") || copyData.contains("youtu.be")) {
             final Snackbar snackbar = Snackbar.make(layout, getString(R.string.copy_data_is_youtube), Snackbar.LENGTH_LONG);
             snackbar.setAction(getString(R.string.open), new View.OnClickListener() {
                 @Override
@@ -288,7 +294,7 @@ public class MainActivity extends AppCompatActivity
             } catch (JSONException e) {
                 e.printStackTrace();
             }
-            API.USER_LOG_KEYWORD(queue, query);
+            API.USER_LOG_KEYWORD(queue, query, "search_keyword");
         } else {
             activity.recreate();
         }
@@ -341,9 +347,17 @@ public class MainActivity extends AppCompatActivity
     private void openJumptube(String requestURL) {
         if (Internet.isAvailable(activity)) {
             LogUtil.show("loading URL => ", requestURL);
-            Uri uri = Uri.parse(requestURL);
-            videoID = uri.getQueryParameter("v");
-            playListID = uri.getQueryParameter("list");
+            if (requestURL.contains("youtube.com/watch?")) {
+                Uri uri = Uri.parse(requestURL);
+                videoID = uri.getQueryParameter("v");
+                playListID = uri.getQueryParameter("list");
+            } else if (requestURL.contains("youtu.be")) {
+                videoID = requestURL.substring(requestURL.lastIndexOf("/"));
+            } else {
+                Snackbar.make(layout, getString(R.string.load_error), Snackbar.LENGTH_SHORT).show();
+                return;
+            }
+
             if (null == playListID) {
                 //this url is single video
                 //do nothing
@@ -369,6 +383,24 @@ public class MainActivity extends AppCompatActivity
             case R.id.bt_exit_app:
                 finish();
                 break;
+            case R.id.imgbt_home:
+                webView_youtube_list.loadUrl(webHomePage);
+                ((ImageView) findViewById(R.id.imgbt_home)).setColorFilter(getResources().getColor(R.color.white));
+                ((ImageView) findViewById(R.id.imgbt_trend)).setColorFilter(getResources().getColor(R.color.black));
+                ((ImageView) findViewById(R.id.imgbt_account)).setColorFilter(getResources().getColor(R.color.black));
+                break;
+            case R.id.imgbt_trend:
+                webView_youtube_list.loadUrl(webTrendingPage);
+                ((ImageView) findViewById(R.id.imgbt_home)).setColorFilter(getResources().getColor(R.color.black));
+                ((ImageView) findViewById(R.id.imgbt_trend)).setColorFilter(getResources().getColor(R.color.white));
+                ((ImageView) findViewById(R.id.imgbt_account)).setColorFilter(getResources().getColor(R.color.black));
+                break;
+            case R.id.imgbt_account:
+                webView_youtube_list.loadUrl(webAccountPage);
+                ((ImageView) findViewById(R.id.imgbt_home)).setColorFilter(getResources().getColor(R.color.black));
+                ((ImageView) findViewById(R.id.imgbt_trend)).setColorFilter(getResources().getColor(R.color.black));
+                ((ImageView) findViewById(R.id.imgbt_account)).setColorFilter(getResources().getColor(R.color.white));
+                break;
         }
     }
 
@@ -393,29 +425,39 @@ public class MainActivity extends AppCompatActivity
                         swipeRefreshLayout.setRefreshing(false);
                         break;
                     case "startService":
-                        String playListID = msg.getData().getString("message", null);
-                        webView_youtube_list.stopLoading();
-                        webView_youtube_list.loadUrl(currentUrl);
-                        if (Service.isRunning(activity, PlayerService.class)) {
-                            LogUtil.show("Service => ", "Already Running!");
-                            Bundle bundle = new Bundle();
-                            bundle.putString("VIDEO_ID", videoID);
-                            bundle.putString("PLAYLIST_ID", playListID);
-                            HandleMessage.set(PlayerService.handler, "startVideo", bundle);
-                        } else {
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !android.provider.Settings.canDrawOverlays(MainActivity.this)) {
-                                Intent i = new Intent(android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                                        Uri.parse("package:" + getPackageName()));
-                                startActivityForResult(i, OVERLAY_PERMISSION_REQ_CODE);
+                        final String playListID = msg.getData().getString("message", null);
+                        if (Internet.isAvailable(MainActivity.this)) {
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    webView_youtube_list.stopLoading();
+                                    webView_youtube_list.loadUrl(currentUrl);
+                                    if (Service.isRunning(activity, PlayerService.class)) {
+                                        LogUtil.show("Service => ", "Already Running!");
+                                        Bundle bundle = new Bundle();
+                                        bundle.putString("VIDEO_ID", videoID);
+                                        bundle.putString("PLAYLIST_ID", playListID);
+                                        HandleMessage.set(PlayerService.handler, "startVideo", bundle);
+                                    } else {
+                                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !android.provider.Settings.canDrawOverlays(MainActivity.this)) {
+                                            Intent i = new Intent(android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                                                    Uri.parse("package:" + getPackageName()));
+                                            startActivityForResult(i, OVERLAY_PERMISSION_REQ_CODE);
 //                                Intent intent = new Intent(MainActivity.this, GetPermission.class);
 //                                startActivity(intent);
-                            } else {
-                                Intent i = new Intent(MainActivity.this, PlayerService.class);
-                                i.putExtra("VIDEO_ID", videoID);
-                                i.putExtra("PLAYLIST_ID", playListID);
-                                i.setAction(Config.ACTION.STARTFOREGROUND_WEB_ACTION);
-                                startService(i);
-                            }
+                                        } else {
+                                            Intent i = new Intent(MainActivity.this, PlayerService.class);
+                                            i.putExtra("VIDEO_ID", videoID);
+                                            i.putExtra("PLAYLIST_ID", playListID);
+                                            i.setAction(Config.ACTION.STARTFOREGROUND_WEB_ACTION);
+                                            startService(i);
+                                        }
+                                    }
+                                }
+                            });
+                            Snackbar.make(layout, getString(R.string.video_open), Snackbar.LENGTH_SHORT).show();
+                        } else {
+                            Snackbar.make(layout, getString(R.string.check_internet), Snackbar.LENGTH_SHORT).show();
                         }
                         break;
                     case "showSuggestionList":

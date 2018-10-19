@@ -1,6 +1,7 @@
 package com.turtle.hsun.jumptube;
 
 import android.os.Handler;
+import android.util.Log;
 import android.webkit.JavascriptInterface;
 
 import com.turtle.hsun.jumptube.Custom.Components.WebPlayer;
@@ -16,7 +17,8 @@ public class JavaScriptInterface {
     //Parameter
     private Handler handler;
     private WebPlayer webPlayer;
-    private Integer currentIndex = 0, playlistCount = 0;
+    private String currentVideoID = "";
+//    private Integer currentIndex = 0, playlistCount = 0;
 
     public JavaScriptInterface(PlayerService playerService) {
         this.handler = PlayerService.handler;
@@ -71,7 +73,8 @@ public class JavaScriptInterface {
     @JavascriptInterface
     public void showVID(String videoID) {
         LogUtil.show("New Video Id ", videoID);
-        HandleMessage.set(handler, "setImageTitleAuthor", String.valueOf(videoID));
+        currentVideoID = videoID;
+        HandleMessage.set(handler, "setImageTitleAuthor", String.valueOf(currentVideoID));
     }
 
     @JavascriptInterface
@@ -85,18 +88,21 @@ public class JavaScriptInterface {
 //    }
 
     @JavascriptInterface
-    public void playlistItems(final String[] items) {
+    public void getPlaylistItems(String[] items) {
         LogUtil.show("Playlist Items", String.valueOf(items.length));
-        playlistCount = items.length;
-        if (currentIndex == playlistCount - 1)
-            HandleMessage.set(handler, "setPlayOver");
+        Integer index = -1;
+        for (int i = 0; i < items.length; ++i) {
+            if (items[i].equals(currentVideoID)) index = i;
+        }
+        Boolean isEndofPlayList = (index == items.length - 1);
+        HandleMessage.set(handler, "isEndofPlayList", String.valueOf(isEndofPlayList));
     }
 
-    @JavascriptInterface
-    public void currVidIndex(final int index) {
-        LogUtil.show("Current Video Index ", String.valueOf(index));
-        currentIndex = index;
-        if (currentIndex == playlistCount - 1)
-            HandleMessage.set(handler, "setPlayOver");
-    }
+//    @JavascriptInterface
+//    public void currVidIndex(int index) {
+//        LogUtil.show("Current Video Index ", String.valueOf(index));
+//        currentIndex = index;
+//        if (currentIndex == playlistCount - 1)
+//            HandleMessage.set(handler, "isLastPlayItem");
+//    }
 }

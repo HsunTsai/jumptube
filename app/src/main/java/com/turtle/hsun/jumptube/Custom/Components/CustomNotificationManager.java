@@ -53,7 +53,7 @@ public class CustomNotificationManager {
 
         //Notification inti
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context)
-                .setSmallIcon(R.drawable.ic_status_bar)
+                .setSmallIcon(R.drawable.ic_icon)
                 .setVisibility(Notification.VISIBILITY_PUBLIC)
                 .setContent(notification_small)
                 .setPriority(Notification.PRIORITY_MAX)

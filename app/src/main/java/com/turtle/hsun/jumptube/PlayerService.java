@@ -1,17 +1,20 @@
 package com.turtle.hsun.jumptube;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.app.Notification;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.Point;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
 import android.os.Message;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
@@ -20,7 +23,6 @@ import android.util.Log;
 import android.view.Display;
 import android.view.Gravity;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewTreeObserver;
 import android.view.WindowManager;
@@ -30,7 +32,9 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 
+import com.android.volley.toolbox.Volley;
 import com.turtle.hsun.jumptube.Activity.FullscreenWebPlayer;
+import com.turtle.hsun.jumptube.Config.API;
 import com.turtle.hsun.jumptube.Config.Config;
 import com.turtle.hsun.jumptube.Config.ConstantStrings;
 import com.turtle.hsun.jumptube.Custom.Components.CustomImageHeader;
@@ -64,8 +68,8 @@ public class PlayerService extends Service implements View.OnClickListener {
     private WindowManager windowManager;
     public static Handler handler;
     private String videoID, playListID;
-    private Boolean isVideoPlaying = true, isReplayVideo = false, isReplayPlaylist = false,
-            isPlayListLoop = false, nextVid = false, isEntireWidth = false, isVideoShow = true; //Next Video to check whether ic_next video is played or not
+    private Boolean isVideoPlaying = true, isReplay = false,
+            isLastPlayItem = false, isEntireWidth = false, isVideoShow = true; //Next Video to check whether ic_next video is played or not
     private WindowManager.LayoutParams windowsHeadParams, windowsCloseParams,
             windowsCloseBackParams, componentPlayerParams,
             param_player, param_service, param_close, param_close_back;
@@ -80,7 +84,7 @@ public class PlayerService extends Service implements View.OnClickListener {
     @Override
     public void onCreate() {
         super.onCreate();
-        context = this.getApplicationContext();
+        context = getApplicationContext();
     }
 
     private void isPlaylistEnded() {
@@ -104,6 +108,7 @@ public class PlayerService extends Service implements View.OnClickListener {
                 sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
                 Config.repeatType = sharedPreferences.getInt(getString(R.string.repeat_type), 0);
                 initialPlay(intent);
+                isLastPlayItem = false;
                 break;
 
             case Config.ACTION.STOPFOREGROUND_WEB_ACTION:
@@ -124,7 +129,6 @@ public class PlayerService extends Service implements View.OnClickListener {
                     webPlayer.loadScript(JavaScript.seekToZero());
                 } else {
                     webPlayer.loadScript(JavaScript.playNextVideo());
-                    nextVid = true;
                 }
                 break;
 
@@ -134,7 +138,6 @@ public class PlayerService extends Service implements View.OnClickListener {
                     webPlayer.loadScript(JavaScript.seekToZero());
                 } else {
                     webPlayer.loadScript(JavaScript.playPreviousVideo());
-                    nextVid = true;
                 }
                 break;
         }
@@ -242,15 +245,21 @@ public class PlayerService extends Service implements View.OnClickListener {
         webPlayer.setupPlayer();
         layout_webView.addView(webPlayer.getPlayer(), new WindowManager.LayoutParams(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.MATCH_PARENT));
         //------------------------------Got Player Id--------------------------------------------------------
-        if (Config.linkType == 1) {
-            LogUtil.show("Service Start => ", "Playlist");
-            webPlayer.loadDataWithUrl("https://www.youtube.com/player_api", ConstantStrings.getPlayListHTML(playListID),
-                    "text/html", null, null);
-        } else {
-            LogUtil.show("Service Start => ", "Single Video");
-            webPlayer.loadDataWithUrl("https://www.youtube.com/player_api", ConstantStrings.getVideoHTML(videoID),
-                    "text/html", null, null);
-        }
+        new Handler(Looper.getMainLooper()).post(new Runnable() {
+            public void run() {
+                if (Config.linkType == 1) {
+                    LogUtil.show("Service Start => ", "Playlist");
+                    webPlayer.loadDataWithUrl("https://www.youtube.com/player_api", ConstantStrings.getPlayListHTML(playListID),
+                            "text/html", null, null);
+
+                } else {
+                    LogUtil.show("Service Start => ", "Single Video");
+                    webPlayer.loadDataWithUrl("https://www.youtube.com/player_api", ConstantStrings.getVideoHTML(videoID),
+                            "text/html", null, null);
+                }
+            }
+        });
+
         param_player.gravity = Gravity.TOP | Gravity.LEFT;
         param_player.x = 0;
         //param_player.y = playerHeadSize - OVER_LAPPING_HEIGHT;
@@ -310,7 +319,15 @@ public class PlayerService extends Service implements View.OnClickListener {
             public void onPlayerShow(Boolean needShowUp) {
                 showPlayer(needShowUp);
             }
+
+            @Override
+            public void onScreenChange(int scrnHeight_, int scrnWidth_) {
+                scrnHeight = scrnHeight_;
+                scrnWidth = scrnWidth_;
+            }
         });
+
+
         img_head_icon.setOnTouchListener(customImageHeader);
 
     }
@@ -344,6 +361,7 @@ public class PlayerService extends Service implements View.OnClickListener {
         }
         if (newWindowsScaleType >= 3 && newWindowsScaleType <= 6) {
             //only accept type from 3 to 6
+            //....
             HandleMessage.set(PlayerService.handler, "setWindowsScaleType", String.valueOf(newWindowsScaleType));
         }
     }
@@ -363,16 +381,15 @@ public class PlayerService extends Service implements View.OnClickListener {
     private void pausePlay() {
         webPlayer.loadScript(JavaScript.getPlaybackQuality());
         if (isVideoPlaying) {
-            if (isReplayVideo || isReplayPlaylist) {
+            if (isReplay) {
                 if (Config.linkType == 1) {
                     LogUtil.show("PlayStatus", "Replay Playlist");
-                    webPlayer.loadScript(JavaScript.replayPlaylistScript());
-                    isReplayPlaylist = false;
+                    webPlayer.loadScript(JavaScript.replayPlayList());
                 } else {
                     LogUtil.show("PlayStatus", "Replay Video");
                     HandleMessage.set(handler, "videoPlay");
-                    isReplayVideo = false;
                 }
+                isReplay = false;
             } else {
                 LogUtil.show("PlayStatus", "Pause Video");
                 HandleMessage.set(handler, "videoPause");
@@ -427,30 +444,18 @@ public class PlayerService extends Service implements View.OnClickListener {
             case R.id.img_repeat_type:
                 SharedPreferences.Editor editor = sharedPreferences.edit();
                 if (Config.repeatType == 0) {
-                    editor.putInt(getString(R.string.repeat_type), 1);
-                    editor.commit();
                     Config.repeatType = 1;
                     if (Config.linkType == 1) {
                         webPlayer.loadScript(JavaScript.setLoopPlaylist());
                     }
-                    updateRepeatTypeImage();
-                } else if (Config.repeatType == 1) {
-                    editor.putInt(getString(R.string.repeat_type), 2);
-                    editor.commit();
-                    Config.repeatType = 2;
-                    if (Config.linkType == 1) {
-                        webPlayer.loadScript(JavaScript.unsetLoopPlaylist());
-                    }
-                    updateRepeatTypeImage();
-                } else if (Config.repeatType == 2) {
-                    editor.putInt(getString(R.string.repeat_type), 0);
-                    editor.commit();
+                } else {
                     Config.repeatType = 0;
                     if (Config.linkType == 1) {
                         webPlayer.loadScript(JavaScript.unsetLoopPlaylist());
                     }
-                    updateRepeatTypeImage();
                 }
+                editor.putInt(getString(R.string.repeat_type), Config.repeatType).apply();
+                updateRepeatTypeImage();
                 break;
             default:
                 break;
@@ -551,68 +556,61 @@ public class PlayerService extends Service implements View.OnClickListener {
                         webPlayer.loadScript(JavaScript.onPlayerStateChangeListener());
                         break;
                     case "setImageTitleAuthor":
-                        String videoId = msg.getData().getString("message", "");
-                        customNotificationManager.setAuthor(videoId);
+                        String videoID = msg.getData().getString("message", "");
+                        customNotificationManager.setAuthor(videoID);
+                        API.USER_LOG_KEYWORD(Volley.newRequestQueue(context), videoID, "watch_video_id");
                         break;
-                    case "setPlayOver":
-                        customNotificationManager.setPlayOver();
-                        isReplayPlaylist = true;
+
+                    case "isEndofPlayList":
+                        isLastPlayItem = Boolean.parseBoolean(msg.getData().getString("message"));
                         break;
                     case "playStatus_unstarted":
-                        nextVid = true;
+                        //無法解讀 play 失敗
                         break;
                     //結束播放
                     case "playStatus_ended":
+                        LogUtil.show("Repeat Type => ", String.valueOf(Config.repeatType));
                         img_youtube.setVisibility(View.VISIBLE);
                         if (Config.linkType == 1) {
-                            LogUtil.show("Repeat Type => ", String.valueOf(Config.repeatType));
-                            if (Config.repeatType == 2) {
-                                webPlayer.loadScript(JavaScript.playPreviousVideo());
+                            //Play List
+                            if (Config.repeatType == 0) isPlaylistEnded();
+                            if (Config.repeatType == 1)
+                                HandleMessage.set(handler, "videoPlay");
+
+                            //if this video is last item, then replay this list
+                            if (isLastPlayItem) {
+                                webPlayer.loadScript(JavaScript.replayPlayList());
                             }
-                            //If not repeating then set notification icon to repeat when playlist ends
-                            if (Config.repeatType == 0) {
-                                isPlaylistEnded();
-                            }
+//                            if (Config.repeatType == 2)
+//                                webPlayer.loadScript(JavaScript.playPreviousVideo());
                         } else {
+                            //Single Video
                             if (Config.repeatType > 0) {
                                 HandleMessage.set(handler, "videoPlay");
                             } else {
-                                if (Config.finishOnEnd == true) {
-                                    stopForeground(true);
-                                    stopSelf();
-                                    stopService(new Intent(context, PlayerService.class));
-                                } else {
-                                    isReplayVideo = true;
-                                    customNotificationManager.setReplay();
-                                }
+                                customNotificationManager.setReplay();
+                                isReplay = true;
                             }
                         }
+                        if (null != FullscreenWebPlayer.handler)
+                            HandleMessage.set(FullscreenWebPlayer.handler, "playStatus_ended");
                         break;
                     //播放中
                     case "playStatus_playing":
                         img_youtube.setVisibility(View.GONE);
                         isVideoPlaying = true;
                         customNotificationManager.setPause();
-                        if (nextVid) {
-                            nextVid = false;
-                            webPlayer.loadScript(JavaScript.getVidUpdateNotiContent());
-                        }
-                        if (videoID.length() < 1) {
-                            LogUtil.show("Update", "Notificaion content");
-                            webPlayer.loadScript(JavaScript.getVidUpdateNotiContent());
-                        }
-                        //Also Update if playlist is set for loop
-                        if (Config.linkType == 1 && Config.repeatType == 1 && !isPlayListLoop) {
-                            LogUtil.show("setPlayingStatus ", "set Playlist on Loop");
-                            webPlayer.loadScript(JavaScript.setLoopPlaylist());
-                            isPlayListLoop = true;
-                        }
+                        webPlayer.loadScript(JavaScript.getVidUpdateNotiContent());
+                        if (null != FullscreenWebPlayer.handler)
+                            HandleMessage.set(FullscreenWebPlayer.handler, "playStatus_playing");
                         break;
                     //停止播放
                     case "playStatus_paused":
                         img_youtube.setVisibility(View.VISIBLE);
                         isVideoPlaying = false;
                         customNotificationManager.setPlay();
+                        if (null != FullscreenWebPlayer.handler)
+                            HandleMessage.set(FullscreenWebPlayer.handler, "playStatus_paused");
                         break;
                     //緩存中
                     case "playStatus_buffering":
@@ -660,15 +658,15 @@ public class PlayerService extends Service implements View.OnClickListener {
                     case "setDurationTime":
                         Integer durationTime = Integer.parseInt(msg.getData().getString("message", "0"));
                         seekBar_player.setMax(durationTime);
-                        if (null != FullscreenWebPlayer.seekBar_player)
-                            FullscreenWebPlayer.seekBar_player.setMax(durationTime);
+                        if (null != FullscreenWebPlayer.handler)
+                            HandleMessage.set(FullscreenWebPlayer.handler, "setDurationTime", String.valueOf(durationTime));
                         break;
                     //設定目前播放進度
                     case "setCurrentTime":
                         currentTime = Integer.parseInt(msg.getData().getString("message", "0"));
                         seekBar_player.setProgress(currentTime);
-                        if (null != FullscreenWebPlayer.seekBar_player)
-                            FullscreenWebPlayer.seekBar_player.setProgress(currentTime);
+                        if (null != FullscreenWebPlayer.handler)
+                            HandleMessage.set(FullscreenWebPlayer.handler, "setCurrentTime", String.valueOf(currentTime));
                         break;
                     case "imageEntireClick":
                         img_entire_width.performClick();
@@ -685,7 +683,10 @@ public class PlayerService extends Service implements View.OnClickListener {
                     case "videoPlay":
                         webPlayer.loadScript(JavaScript.playVideo());
                         break;
-
+//                    case "setPlayOver":
+//                        customNotificationManager.setPlayOver();
+//                        isReplay = true;
+//                        break;
                 }
             }
         };
@@ -697,13 +698,16 @@ public class PlayerService extends Service implements View.OnClickListener {
         isVideoPlaying = true;
         Config.linkType = 0;
         if (windows_player != null) {
-//            if (FullscreenWebPlayer.active) {
-//                FullscreenWebPlayer.activity.onBackPressed();
-//            }
             windowManager.removeView(windows_player);
             windowManager.removeView(windows_head);
             windowManager.removeView(windows_close);
             webPlayer.destroy();
         }
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration configuration) {
+        super.onConfigurationChanged(configuration);
+        customImageHeader.changeScreenDirection(configuration);
     }
 }

@@ -73,13 +73,13 @@ public class JavaScript {
         return "javascript:player.setLoop(false)";
     }
 
-    public static String replayPlaylistScript() {
+    public static String replayPlayList() {
         return "javascript:player.playVideoAt(0)";
     }
 
     public static String isPlaylistEnded() {
-        return "javascript:window.Interface.playlistItems(player.getPlaylist());" +
-                "window.Interface.currVidIndex(player.getPlaylistIndex());";
+        return "javascript:window.Interface.getPlaylistItems(player.getPlaylist());";
+        //player.getPlaylistIndex() //取得目前播放的index
     }
 
     public static String resetPlaybackQuality(String quality) {

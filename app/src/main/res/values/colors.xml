@@ -9,4 +9,7 @@
     <color name="holo_orange_light">#ffbb33</color>
     <color name="holo_red_light">#ff9a9a</color>
     <color name="alpha_black">#33000000</color>
+    <color name="gray">#CCC</color>
+    <color name="white">#fff</color>
+    <color name="black">#000</color>
 </resources>

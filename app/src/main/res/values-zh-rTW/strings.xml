@@ -29,6 +29,7 @@
     <string name="version_available">可取得新的版本</string>
     <string name="version_available_detail">是否要更新您的App呢?</string>
     <string name="loading">前往中...</string>
+    <string name="video_open">影片啟動中...</string>
 
     <!--Common-->
     <string name="settings">設定</string>

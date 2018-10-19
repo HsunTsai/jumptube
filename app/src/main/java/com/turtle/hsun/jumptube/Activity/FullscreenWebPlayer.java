@@ -33,7 +33,7 @@ import java.util.TimerTask;
 public class FullscreenWebPlayer extends Activity implements View.OnClickListener {
 
     //Parameter
-    private Handler handler;
+    public static Handler handler;
     private Boolean isShow = true, isPlaying = true;
     private Timer timer;
     private int flags = View.SYSTEM_UI_FLAG_LAYOUT_STABLE
@@ -95,7 +95,7 @@ public class FullscreenWebPlayer extends Activity implements View.OnClickListene
             public void onDoubleClick() {
                 HandleMessage.set(PlayerService.handler, "videoForward");
                 Toast.makeText(FullscreenWebPlayer.this,
-                        getString(R.string.video_forward_10),Toast.LENGTH_SHORT).show();
+                        getString(R.string.video_forward_10), Toast.LENGTH_SHORT).show();
             }
         });
         bt_backward = (Button) findViewById(R.id.bt_backward);
@@ -110,7 +110,7 @@ public class FullscreenWebPlayer extends Activity implements View.OnClickListene
             public void onDoubleClick() {
                 HandleMessage.set(PlayerService.handler, "videoBackward");
                 Toast.makeText(FullscreenWebPlayer.this,
-                        getString(R.string.video_backward_10),Toast.LENGTH_SHORT).show();
+                        getString(R.string.video_backward_10), Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -130,22 +130,13 @@ public class FullscreenWebPlayer extends Activity implements View.OnClickListene
         leaveFullScreen();
     }
 
-//    @Override
-//    protected void onPause() {
-//        super.onPause();
-//        onBackPressed();
-//    }
-
-
     private void setVideoPlayPause() {
         if (null == PlayerService.handler) return;
         isPlaying = !isPlaying;
         if (isPlaying) {
             HandleMessage.set(PlayerService.handler, "videoPlay");
-            imgbt_play_pause_video.setImageResource(R.drawable.pause);
         } else {
             HandleMessage.set(PlayerService.handler, "videoPause");
-            imgbt_play_pause_video.setImageResource(R.drawable.play);
         }
     }
 
@@ -183,6 +174,29 @@ public class FullscreenWebPlayer extends Activity implements View.OnClickListene
                         layout_control.setAlpha(1);
                         setHideControlTimer();
                         break;
+                    case "playStatus_ended":
+                        isPlaying = false;
+                        imgbt_play_pause_video.setImageResource(R.drawable.play);
+                        break;
+                    case "playStatus_playing":
+                        isPlaying = true;
+                        imgbt_play_pause_video.setImageResource(R.drawable.pause);
+                        break;
+                    case "playStatus_paused":
+                        isPlaying = false;
+                        imgbt_play_pause_video.setImageResource(R.drawable.play);
+                        break;
+                    //設定總播放時間
+                    case "setDurationTime":
+                        Integer durationTime = Integer.parseInt(msg.getData().getString("message", "0"));
+                        seekBar_player.setMax(durationTime);
+                        break;
+                    //設定目前播放進度
+                    case "setCurrentTime":
+                        Integer currentTime = Integer.parseInt(msg.getData().getString("message", "0"));
+                        seekBar_player.setProgress(currentTime);
+                        break;
+
                 }
             }
         };
@@ -198,4 +212,12 @@ public class FullscreenWebPlayer extends Activity implements View.OnClickListene
             }
         }, 2000);
     }
+
+
+//    @Override
+//    protected void onPause() {
+//        super.onPause();
+//        onBackPressed();
+//    }
+
 }
